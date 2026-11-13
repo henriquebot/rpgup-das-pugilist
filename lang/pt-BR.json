@@ -1,0 +1,8 @@
+{
+  "RPGUPPUGILIST": {
+    "Title": "RPGUp DAS Pugilist",
+    "Unsupported": "RPGUp Pugilist: versão incompatível. As automações complementares foram desativadas; consulte o diagnóstico.",
+    "Duplicate": "RPGUp Pugilist: foram encontradas características duplicadas. Consulte o diagnóstico antes de usar recursos.",
+    "Diagnostics": "Diagnóstico do Pugilist"
+  }
+}

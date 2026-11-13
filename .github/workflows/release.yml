@@ -1,0 +1,26 @@
+name: Release module
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: git clone --depth 1 --branch v0.282.1 https://github.com/Darshyne/dnd5e-combat.git .research/dnd5e-combat
+      - run: git clone --depth 1 --branch v0.15.0 https://github.com/Darshyne/darsh-animations.git .research/darsh-animations
+      - run: git clone --depth 1 --branch release-6.0.6 https://github.com/foundryvtt/dnd5e.git .research/dnd5e
+      - run: npm run check
+      - name: Verify tag matches manifest
+        run: node -e "if ('v'+JSON.parse(require('fs').readFileSync('module.json')).version !== process.env.GITHUB_REF_NAME) process.exit(1)"
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/module.json dist/rpgup-das-pugilist.zip dist/SHA256SUMS --prerelease --title "RPGUp DAS Pugilist $GITHUB_REF_NAME" --notes-file docs/RELEASE.md

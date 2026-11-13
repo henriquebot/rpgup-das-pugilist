@@ -1,0 +1,7 @@
+{
+  "dnd5e-combat": { "url": "https://github.com/Darshyne/dnd5e-combat.git", "tag": "v0.282.1", "commit": "e0f901f737bff528c08767b41910c4bb58d1a55e" },
+  "darsh-homebrew": { "url": "https://github.com/Darshyne/darsh-homebrew.git", "tag": "v0.3.2", "commit": "079f2a59e761b2a33c7086fc11824ee9500c8449" },
+  "darsh-dnd-ui": { "url": "https://github.com/Darshyne/darsh-dnd-ui.git", "tag": "v0.34.0", "commit": "33dee5c31518d2d854b68bb63fa7afb84932d4c1" },
+  "darsh-animations": { "url": "https://github.com/Darshyne/darsh-animations.git", "tag": "v0.15.0", "commit": "205a513fde5cf02ce452c04eb74cc580b3b7480c" },
+  "dnd5e": { "url": "https://github.com/foundryvtt/dnd5e.git", "tag": "release-6.0.6", "commit": "87e94dbd9f930135e0694cd7e7d49f210603cd2c" }
+}
