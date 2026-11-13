@@ -12,6 +12,10 @@ A cadeia efetiva foi conferida: `AttackActivity._buildAttackConfig` copia `proce
 
 `tests/improvised.test.mjs` verifica níveis 1–6; personagens sem a classe; armas, armaduras e escudo inelegíveis; classificação de magia/desarmado; nomes traduzidos; preservação de escolha e dados do item. Executa também o método de configuração exato extraído da versão de referência, com substitutos de serviços, e as funções reais de resolução/expiração de Sap do DAS. São testes de contratos/comportamento em Node, sem execução dentro do Foundry; a contagem atualizada pertence ao relatório final de `npm run check`.
 
+Armas improvisadas não constam em `DND5E.weaponProficienciesMap` (`module/config.mjs:430–435`). A classe, portanto, não recebe sua proficiência simplesmente por conceder armas simples. `scripts/improvised.mjs` acrescenta o bônus somente quando `weapon.system.prof.hasProficiency` é falso, usando `config.rolls[0].parts/data`; o builder nativo preserva essas partes/dados ao juntar o cálculo normal (`attack.mjs:277–278`). Não altera `system.proficient` da arma nem acrescenta novamente um bônus já concedido.
+
+O Core aumenta todo `flurry` pelo maior `flurryStrikes` do portador (`runtime/turn.mjs:617–621`). Isso também afetaria os ataques externos do Pugilist. Para evitar um benefício indevido em multiclasses, a guarda pré-uso consulta a API pública `api.content.inspect(actor)` (`adapter/content.mjs:257–262`) e recusa apenas a atividade própria cujo número de ataques seria aumentado, antes do consumo. Não modifica os itens de Monge ou o orçamento do DAS.
+
 ## Dig Deep e Exhaustion
 
 O sistema consulta `traits.ci.value` para a redução dos testes (`Actor5e.conditionRollReductions`, `module/documents/actor/actor.mjs:147–156`), efeitos de condições (`hasConditionEffect`, `:612–633`) e redução de movimento (`module/data/actor/templates/attributes.mjs:551–560`). Uma mudança customizada do efeito próprio pode derivar a supressão dessas penalidades sem gravar zero no contador.

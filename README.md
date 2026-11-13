@@ -53,6 +53,8 @@ Versões diferentes das três referências exatas desativam os complementos, com
 
 Os custos, confirmações de exceções de orçamento, queries de jogadores e a serialização do combate pertencem ao DAS. Em particular, Inescapable e o reembolso de Haymaker usam a implementação upstream: **concorrência real entre clientes, falhas de rede e recarga durante uma decisão não estão certificados por testes Node**. O add-on não modifica essa implementação para oferecer uma garantia que o contrato não fornece. Testes com jogador/GM conectados ficam para a validação no Foundry.
 
+Multiclasses com um aumento global de `flurryStrikes` (por exemplo, Heightened Focus do Monge) bloqueiam One-Two Punch/Stick and Move antes do custo, pois o Core aplicaria esse aumento também às oportunidades do Pugilist. As habilidades do Monge continuam intactas. Não foi implementado um motor alternativo para contornar essa limitação. A proficiência de armas improvisadas é acrescentada somente à ocorrência quando o cálculo nativo ainda não a concede; o documento da arma permanece intacto.
+
 Brace Up mede tempo do mundo, não tempo de relógio do computador. PV temporários posteriores de outra fonte não são apagados. Uma edição direta de PV temporários na ficha encerra o rastreamento de origem; nesse caso o valor editado passa a ser administrado pela mesa. A expiração por tempo é executada pelo GM ativo, ou pelo proprietário ativo eleito na ausência de GM.
 
 ## Visuais e fichas

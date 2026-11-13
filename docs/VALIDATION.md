@@ -16,7 +16,7 @@ As referências completas são listadas em `tools/references.json`. O diretório
 
 - Suíte oficial do DAS Core: **174 arquivos, 1.814 testes aprovados**, nenhum ignorado, sem alteração de fontes upstream. Uma primeira execução paralela atingiu o timeout de inicialização do teste de carregamento; a repetição completa com quatro workers e timeout30s passou integralmente.
 - O pacote foi compilado pela CLI oficial, com **22 registros Item** no LevelDB. A extração de volta pela mesma CLI preservou todos os documentos, atividades, avanços e efeitos embutidos.
-- Suíte final do add-on: **78 testes aprovados**, nenhum ignorado, via `npm run check`. Os testes usam Node, fontes upstream e substitutos de ambiente conforme as categorias acima. O workflow repete a suíte do add-on e a suíte oficial do Core.
+- Suíte final do add-on: **80 testes aprovados**, nenhum ignorado, via `npm run check`. Os testes usam Node, fontes upstream e substitutos de ambiente conforme as categorias acima. O workflow repete a suíte do add-on e a suíte oficial do Core.
 
 As mecânicas não automatizadas ficam explicitamente fora da certificação; passar pelo validador não é evidência de que elas funcionam.
 

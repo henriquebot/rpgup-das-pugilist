@@ -2,7 +2,7 @@ import { MODULE_ID } from '../src/ids.mjs';
 import { CONTENT, SOURCES } from './content.mjs';
 import { applyIronChin, applyDigDeep, applyFisticuffsDamage, activityAllowed, actorDiagnostics } from './policy.mjs';
 import { createRuntime } from './runtime.mjs';
-import { applyImprovisedSap } from './improvised.mjs';
+import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -40,9 +40,10 @@ export function install(env) {
   on('applyActiveEffect', guarded(applyIronChin));
   on('applyActiveEffect', guarded(applyDigDeep));
   on('dnd5e.preRollAttackV2', guarded(applyImprovisedSap));
+  on('dnd5e.preRollAttackV2', guarded(applyImprovisedTraining));
   on('dnd5e.preRollDamageV2', guarded(applyFisticuffsDamage));
   on('dnd5e.preUseActivity', guarded(activity => {
-    if (!activityAllowed(activity)) {
+    if (!activityAllowed(activity, env.game.modules.get('dnd5e-combat')?.api?.content)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
       return false;
     }

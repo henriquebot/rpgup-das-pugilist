@@ -94,6 +94,16 @@ test('unimplemented activities cannot consume Moxie or apply arbitrary damage', 
   assert.equal(activityAllowed({ item: { type: 'spell', system: { identifier: 'fireball' } } }), true);
 });
 
+test('external flurry enhancements cannot grant extra free Pugilist attacks in multiclass characters', () => {
+  const actor = actorAt(6);
+  const enhanced = { inspect: checked => {
+    assert.equal(checked, actor);
+    return [{ identifier: 'heightened-focus', entry: { flurryStrikes: 3 } }];
+  } };
+  for (const key of ['oneTwoPunch', 'stickAndMove']) assert.equal(activityAllowed({ item: item(actor, key), actor }, enhanced), false);
+  assert.equal(activityAllowed({ item: item(actor, 'oneTwoPunch'), actor }, { inspect: () => [] }), true);
+});
+
 test('Fisticuffs changes only the native base part and never duplicates Strength or bonus dice', () => {
   for (const [level, die] of [[1, 8], [4, 8], [5, 10], [6, 10]]) {
     const actor = actorAt(level);

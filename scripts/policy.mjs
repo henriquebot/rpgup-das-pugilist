@@ -38,12 +38,18 @@ export function fisticuffsEligible(actor) {
     && i.system.identifier !== 'unarmed-strike');
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
-export function activityAllowed(activity) {
+export function activityAllowed(activity, contentApi = null) {
   const key = ownedKey(activity?.item);
   if (!key) return true;
   const actor = activity.actor ?? activity.item.actor;
   if (!feature(actor, key)) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;
+  // Core applies flurryStrikes enhancements to every external flurry. Refuse
+  // our use before paying if that would grant more attacks than this feature.
+  if (key === 'oneTwoPunch' || key === 'stickAndMove') {
+    const count = key === 'oneTwoPunch' ? 2 : 1;
+    if ((contentApi?.inspect?.(actor) ?? []).some(row => Number(row.entry?.flurryStrikes) > count)) return false;
+  }
   // These activities do not have a faithful event integration in this version.
   // Reject instead of taking Moxie or damaging an arbitrary selected creature.
   if (['swagger', 'compression', 'meatShield'].includes(key)) return false;

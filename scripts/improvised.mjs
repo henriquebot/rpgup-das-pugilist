@@ -1,4 +1,22 @@
-import { fisticuffsEligible } from './policy.mjs';
+import { fisticuffsEligible, feature } from './policy.mjs';
+
+/** Native improvised weapons do not map to the simple-weapon proficiency.
+ * Add their class training only when the prepared native weapon has no
+ * proficiency. The standard builder merges these occurrence parts/data. */
+export function applyImprovisedTraining(config) {
+  const activity = config?.subject;
+  const weapon = activity?.item;
+  if (activity?.type !== 'attack' || weapon?.type !== 'weapon' || weapon.system?.type?.value !== 'improv'
+      || activity.attack?.type?.classification !== 'weapon' || activity.attack.flat
+      || !feature(activity.actor, 'fisticuffs') || weapon.system?.prof?.hasProficiency !== false) return;
+  const roll = config.rolls?.[0];
+  const proficiency = Number(activity.actor.system?.attributes?.prof);
+  if (!roll || !(proficiency > 0)) return;
+  roll.parts ??= [];
+  if (!roll.parts.includes('@rpgupPugilistProf')) roll.parts.push('@rpgupPugilistProf');
+  roll.data ??= {};
+  roll.data.rpgupPugilistProf = proficiency;
+}
 
 /**
  * Native public hook: dnd5e.preRollAttackV2(config, dialog, message).
