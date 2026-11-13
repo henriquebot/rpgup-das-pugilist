@@ -10,7 +10,7 @@ A API valida cada entrada com o validador oficial. Entradas rejeitadas não são
 
 `api.content.identifierOf` e o mapa `sources` reconhecem documentos por identificador e fonte original, independentemente de tradução. `sources` só mapeia os IDs dos compêndios deste módulo. Nunca se registra uma entrada genérica para `unarmed-strike`, `extra-attack`, `monks-focus`, nem qualquer identificador de outra classe. Os documentos próprios de Unarmed Strike e Extra Attack usam os identificadores nativos necessários ao sistema, com flags de propriedade do add-on; isso não equivale a modificar as regras globais desses identificadores.
 
-O Core combina tabelas externas sobre o conteúdo embarcado (`mergeEntries`). Portanto, reutilizar identificadores genéricos na tabela seria uma alteração global e foi rejeitado. Os oito registros de `scripts/content.mjs` pertencem apenas ao namespace `rpgup-pugilist-*`.
+O Core combina tabelas externas sobre o conteúdo embarcado (`mergeEntries`). Portanto, reutilizar identificadores genéricos na tabela seria uma alteração global e foi rejeitado. Os sete registros de `scripts/content.mjs` pertencem apenas ao namespace `rpgup-pugilist-*`. Heavy Hitter não permanece como `hitFollowUp`, pois essa declaração não consegue aplicar a condição de Stop and Drop.
 
 ## Esquema e receitas
 
@@ -28,7 +28,7 @@ O contrato completo está documentado em `module/scripts/core/content.mjs`, com 
 
 ## Janelas, jogador conectado e custos
 
-`adapter/choices.mjs:34–85` encaminha decisões ao jogador conectado proprietário do ator usando a infraestrutura de queries do Foundry e, em falha de resposta, consulta o GM. Diálogos de combate têm prazo e alternativa padrão; as regras opcionais devem colocar a recusa primeiro. Os prompts de Heavy Hitter e Inescapable já fazem isso. O código de perguntas do Core é uma implementação interna; não se importa `askChoice` diretamente no add-on.
+`adapter/choices.mjs:34–85` confirma o padrão público: decisões podem ser encaminhadas ao proprietário por `User.query`, com um handler em `CONFIG.queries`. O add-on implementa seu próprio handler mínimo, com recusa primeiro e retorno nulo em timeout; não importa `askChoice` ou outro módulo interno do Core.
 
 As reações usam `adapter/reactions.mjs:62–105` para disponibilidade e `:116–145` para recursos. `runtime/reactions.mjs:258–289` abre `isDamaged` após aplicação de dano. Uma declaração `use` chama a atividade nativa e respeita o orçamento de reação. O complemento de Bloodied But Unbowed só resolve as mudanças específicas após uma utilização bem-sucedida; o add-on não abre outra janela de reação.
 
@@ -49,18 +49,18 @@ A disponibilidade e o pagamento ficam com o Core e com a atividade nativa. Essa 
 | One-Two Punch | `flurry: {activity, strikes: 2}` | Orçamento, alvos e ataques gratuitos pertencem ao DAS; não criar dois ataques automáticos adicionais. |
 | Stick and Move | `flurry` com uma oportunidade e `basicActions: {activity: {choose:["dash","disengage"]}}` | Uma atividade de ativação com uma escolha; não gastar bônus novamente. |
 | Bloodied But Unbowed | Gatilho `isDamaged` com `use` da atividade de reação | Restauração e PV temporários são complemento após uso confirmado. Limite curto/longo e expiração especial devem permanecer nos dados. |
-| Swagger Streak | Documento incluído; sem automação de utilização | `rollBonus` possui partes compatíveis, mas a regra completa exige falha confirmada, reembolso e trava também com CD desconhecida. Não há registro automático e a atividade fica bloqueada para não gastar Moxie incorretamente. |
-| Heavy Hitter | `hitFollowUp`, unarmed, `choose:1`, Grapple/Shove pelos IDs próprios | União das atividades e um prompt pelo Core; não substituir o ataque/dano original. |
-| Compression Lock | Documento incluído; sem automação de utilização | `grappleDamage` causa dano obrigatório, sem pergunta. `atTurnStart` exige concentração ativa em `ui/pointer.mjs:956–958`. Nenhuma das alternativas reproduz a regra; a atividade fica bloqueada. |
+| Swagger Streak | Hooks públicos `dnd5e.rollAbilityCheck`, `rollSkill` e `rollToolCheck`; atividade nativa paga Moxie; atualização em lote reembolsa e gasta o uso próprio na falha persistente | Só oferece com `roll.options.target` numérico e falha confirmada. Sem CD conhecida permanece manual, evitando presumir falha. |
+| Heavy Hitter | Hook público `dnd5e-combat.resolution`, alvo acertado único e cartas de uso com alvo exato, no mesmo formato de `strikeAgainst` | O antigo `hitFollowUp` foi removido para não abrir uma janela incondicional conflitante. |
+| Compression Lock | `combatTurnChange`, consulta das marcas pareadas `grappling` e carta por vítima no formato público de `pulseAgainst` | `grappleDamage` obrigatório e `atTurnStart` de concentração continuam descartados. Apenas o GM ativo executa; a escolha vai ao proprietário. |
 | Inescapable | `inescapable: {activity}` | `adapter/grapple-rules.mjs:54–77` pergunta antes de debitar. Alvos válidos: `adapter/saves.mjs` e escape em `runtime/grapple.mjs`. Herdado: custo calculado antes de `await` e falha de atualização apenas logada; concorrência multiusuário ainda precisa teste real. |
-| Stop and Drop | Documento incluído; não automatizado | `hitFollowUp.choose:2` não verifica uso de maestria no ataque (`runtime/follow-ups.mjs:26–43`). O add-on mantém somente a escolha única de Heavy Hitter. |
+| Stop and Drop | A resolução lê `attackMessage.system.mastery`, o mesmo campo usado por `adapter/mastery.mjs:25` | A opção dupla só existe sem maestria; com maestria, Heavy Hitter oferece exatamente um efeito. |
 | Muscle Mass | Avanço nativo de perícia | Especialização quando já proficiente exige escolha persistente e idempotente; não incrementar todo prepare/refresh. |
 | ASI | Avanço nativo AbilityScoreImprovement | Usar o sistema de avanço, sem edição permanente de atributos por hook. |
 | Dig Deep | Resistências/duração/uso nativos e mudança customizada do efeito próprio | `applyDigDeep` acrescenta imunidade derivada a Exhaustion somente nos níveis 1–5, sem persistir essa imunidade nem alterar o contador. O nível vem do efeito nativo e o nível 6 preserva seu resultado normal. |
 | Extra Attack | Item próprio com `system.identifier = extra-attack` | `attacksPerAction` do Core limita a multiplicação à ação Attack, sem aumentar ataques de reação/bônus. |
-| Haymaker | Pré-ativação funcional: `maxDamage`, tipos de arma, `refundOnHit:true` | A atividade deve ser usada antes do ataque elegível. O Core maximiza os dados/reembolsa no acerto e perde a promessa no erro; falta a oferta automática antes de cada ataque. |
+| Haymaker | `dnd5e.preUseActivity` cancela, pergunta, arma `maxDamage` pela atividade nativa e repete o uso com marcador de bypass | O handler é registrado após as guardas do DAS. Chamadas diretas a `rollAttack` não passam por esse hook e usam a atividade manual. |
 | Moxie-Fueled Fists | `weaponDamageTypes` com `weapons:["unarmed","improv"]`, `types:["force"]` | `adapter/messages.mjs:207–254` mistura o tipo normal com Force por ocorrência sem editar equipamento. |
-| Meat Shield | Parcial: cobertura condicional por `grappleCover:"half"` | Redirecionamento não habilitado: `redirect` refaz a mesma atividade (`runtime/reactions.mjs:298–312`), mas não filtra previamente alcance dos substitutos. A atividade de reação fica bloqueada. |
+| Meat Shield | `grappleCover:"half"` nativo mais complemento no passo `missed`: `api.gap`, `api.ui.budget`, consumo nativo da reação e repetição gratuita da atividade original | O alcance é filtrado antes da pergunta e revalidado antes do gasto. Não existe transação pública única para pagamento + nova rolagem em caso de desconexão. |
 
 ## Agarrões, cobertura, maestria e dano
 
@@ -84,9 +84,9 @@ Ao chegar ao nível 6, o complemento não acrescenta a imunidade; o sistema cons
 
 ## Testes efetivamente executáveis sem Foundry
 
-`tests/contract.test.mjs` importa o **validador e os módulos puros reais**, sem cópia e sem alteração, do clone fixado. Cobre validação da tabela/mapas, ausência de sobreposição de classes, registro repetido e remoção limpa no registro real, IDs de follow-up, ações básicas/flurry, orçamento real de Attack versus bônus/reação, maximização de dados com modificadores/críticos, recusa de declarações inseguras e rejeição de esquema fictício. Esses testes não são integração de combate dentro do Foundry.
+`tests/contract.test.mjs` importa o **validador e os módulos puros reais**, sem cópia e sem alteração, do clone fixado. Cobre validação da tabela/mapas, ausência de sobreposição de classes, registro repetido e remoção limpa no registro real, exclusão do follow-up incondicional, ações básicas/flurry, orçamento real de Attack versus bônus/reação, maximização de dados com modificadores/críticos e rejeição de esquema fictício. Esses testes não são integração de combate dentro do Foundry.
 
-`tests/das-runtime.test.mjs` executa também as funções e hooks **reais** do runtime upstream, com substitutos mínimos de documentos, queries e geometria: Heavy Hitter e combinações sem duplicação; agarrões com zero/uma/várias vítimas e separação de cenas/origem; recusa/aceitação/falta de Moxie de Inescapable; disponibilidade da reação Bloodied; cobertura Meat Shield contra vários atacantes e agarrados, incluindo retirada do registro; Haymaker armado pela atividade, arma inelegível, dados críticos/adicionais, reembolso único, erro e expiração por mudança de turno. Os substitutos não executam banco de documentos, DiceRoll, canvas ou clientes conectados; este resultado é integração de código em Node e não Foundry ponta a ponta.
+`tests/das-runtime.test.mjs` executa funções e hooks **reais** do runtime upstream com substitutos mínimos: ausência do follow-up Heavy Hitter incondicional; agarrões; Inescapable; reação Bloodied; cobertura Meat Shield; e promessa/reembolso/maximização de Haymaker. `tests/automation.test.mjs` cobre as cinco novas janelas, cancelamentos, recursos, múltiplos alvos, maestria, alcance e idempotência. Os substitutos não executam banco de documentos, DiceRoll, canvas ou clientes conectados; o resultado não é Foundry ponta a ponta.
 
 `tests/improvised.test.mjs` verifica o complemento Sap e a passagem da configuração pelo builder nativo da versão pesquisada, além da resolução/expiração pelas funções reais de maestria do Core. A contagem e o resultado atualizados da suíte completa devem vir da execução final de `npm run check` e de seu relatório de validação; não se mantém uma contagem parcial fixa neste documento de arquitetura.
 

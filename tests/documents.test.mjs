@@ -54,7 +54,7 @@ test("native scales encode exact Moxie and Fisticuffs progression", () => {
 });
 
 test("explicit costs use native identifier remapping and are charged only on their activity", () => {
-  for (const [key, id] of [["braceUp", "braceUp"], ["oneTwoPunch", "oneTwoPunch"], ["stickAndMove", "stickDash"], ["swagger", "swagger"], ["inescapable", "inescapable"], ["haymaker", "haymaker"]]) {
+  for (const [key, id] of [["braceUp", "braceUp"], ["oneTwoPunch", "oneTwoPunch"], ["stickAndMove", "stickDash"], ["swagger", "swagger"], ["inescapable", "inescapable"], ["haymaker", "haymaker"], ["meatShield", "meatShield"]]) {
     const activity = item(key).system.activities[ACTIVITY_IDS[id]];
     assert.deepEqual(activity.consumption.targets.map(({type,target,value}) => ({type,target,value})), [{type:"itemUses",target:IDENTIFIERS.moxie,value:"1"}]);
   }

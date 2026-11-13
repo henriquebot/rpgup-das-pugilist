@@ -1,6 +1,6 @@
 {
   "name": "rpgup-das-pugilist",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Isolated Pugilist content add-on for DAS and dnd5e",

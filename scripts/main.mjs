@@ -2,6 +2,7 @@ import { MODULE_ID } from '../src/ids.mjs';
 import { CONTENT, SOURCES } from './content.mjs';
 import { applyIronChin, applyDigDeep, applyFisticuffsDamage, activityAllowed, actorDiagnostics } from './policy.mjs';
 import { createRuntime } from './runtime.mjs';
+import { createAutomation } from './automation.mjs';
 import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
 
 export function compatible(game) {
@@ -13,6 +14,7 @@ export function compatible(game) {
 export function install(env) {
   const hooks = [];
   const runtime = createRuntime(env);
+  const automation = createAutomation(env);
   let stopped = false;
   let registration = null;
   let lastError = null;
@@ -42,8 +44,8 @@ export function install(env) {
   on('dnd5e.preRollAttackV2', guarded(applyImprovisedSap));
   on('dnd5e.preRollAttackV2', guarded(applyImprovisedTraining));
   on('dnd5e.preRollDamageV2', guarded(applyFisticuffsDamage));
-  on('dnd5e.preUseActivity', guarded(activity => {
-    if (!activityAllowed(activity, env.game.modules.get('dnd5e-combat')?.api?.content)) {
+  on('dnd5e.preUseActivity', guarded((activity, usageConfig) => {
+    if (!activityAllowed(activity, env.game.modules.get('dnd5e-combat')?.api?.content, usageConfig)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
       return false;
     }
@@ -53,12 +55,20 @@ export function install(env) {
   on('preUpdateActor', guarded(runtime.manualTemporaryHp));
   on('updateWorldTime', asyncGuarded(runtime.expireAll));
   on('dnd5e.restCompleted', asyncGuarded(runtime.rest));
+  for (const hook of ['dnd5e.rollAbilityCheck', 'dnd5e.rollSkill', 'dnd5e.rollToolCheck']) on(hook, asyncGuarded(automation.swagger));
+  on('combatTurnChange', guarded(automation.compression));
+  on('dnd5e-combat.resolution', guarded(automation.resolution));
   on('dnd5e-combat.registerContent', register);
+  let lateHooks = false;
   on('ready', () => {
     const mod = env.game.modules.get(MODULE_ID);
     if (mod) mod.api = api;
     if (!enabled()) { if (env.game.user?.isGM) env.ui?.notifications?.warn(env.game.i18n.localize('RPGUPPUGILIST.Unsupported')); return; }
     if (!registration) register((...args) => env.game.modules.get('dnd5e-combat').api.content.register(...args));
+    automation.registerQuery();
+    // Register after the DAS legality routes. An illegal/out-of-range attack is
+    // rejected by Core before Haymaker can spend Moxie.
+    if (!lateHooks) { lateHooks = true; on('dnd5e.preUseActivity', guarded(automation.haymaker)); }
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
@@ -72,7 +82,7 @@ export function install(env) {
       for (const [name, id] of hooks) env.Hooks.off(name, id);
       env.game.modules.get('dnd5e-combat')?.api?.content?.unregister(MODULE_ID);
     },
-    idle: runtime.idle
+    idle: () => Promise.all([runtime.idle(), automation.idle()])
   });
   return api;
 }

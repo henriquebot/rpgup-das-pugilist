@@ -24,10 +24,22 @@ O nível deve ser lido do efeito de condição nativo, pois `prepareExhaustionLe
 
 ## Compression Lock
 
-`atTurnStart` não é um gatilho genérico para qualquer característica. O consumidor efetivo `ui/pointer.mjs:941–964` exige `concentrationOn(item)` antes de oferecer a atividade. Adicionar uma concentração fictícia modificaria a regra do Pugilist. `grappleDamage`, por outro lado, aplica o dano sem uma escolha, por isso também não reproduz a habilidade opcional. Nenhum dos dois deve ser apresentado como implementação fiel de Compression Lock.
+`atTurnStart` não é um gatilho genérico para qualquer característica. O consumidor efetivo `ui/pointer.mjs:941–964` exige `concentrationOn(item)`; `grappleDamage` aplica dano sem escolha. O complemento usa o hook público `combatTurnChange`, no GM ativo, e aceita apenas pares exatos entre a marca `flags.dnd5e-combat.grappling` do agarrador e o efeito Grappled da vítima. Depois da confirmação, cria uma carta de uso por alvo no formato público observado em `adapter/areas.mjs:287–317`, deixando dano e aplicação com o DAS.
 
 ## Swagger Streak
 
 Foi identificado um possível mecanismo declarativo para a trava: uma segunda consumação `itemUses` do próprio item com valor `"0"` faz `usesLeftFor` considerar sua disponibilidade, sem gastar seu uso em um sucesso. O consumidor nativo aceita custo zero (`data/activity/fields/consumption-targets-field.mjs`, `_usesConsumption`); `failRefund` gastaria o uso próprio apenas quando o teste permanecesse falho. Isso resolve somente a trava.
 
-O runtime do Core ainda permite oferecer `rollBonus` em testes sem CD conhecida, e só decide reembolso/bloqueio quando `needed` é finito. Assim, essa combinação isolada não garante a regra em todos os testes. Não foi habilitada como uma automação completa.
+O runtime do Core permite oferecer `rollBonus` em testes sem CD conhecida e só decide reembolso/bloqueio quando `needed` é finito. Por isso a declaração não foi usada. O complemento observa os hooks pós-rolagem documentados em `Actor5e`, exige `roll.options.target` finito e falha real, usa a atividade nativa para pagar Moxie e, se o total continuar abaixo da CD, atualiza em uma única operação os dois itens: devolve Moxie e gasta o uso recuperável de Swagger.
+
+## Heavy Hitter e Stop and Drop
+
+`adapter/mastery.mjs:25` define a maestria realmente usada como `attackMessage.system.mastery`. `runtime/follow-ups.mjs` não possui filtro equivalente, portanto Heavy Hitter foi retirado da tabela declarativa. No passo público `dnd5e-combat.resolution` `done`, o complemento exige a atividade própria de Golpe Desarmado, um único alvo acertado e vivo e a característica própria. Ele cria cartas de Agarrar/Empurrar com alvo exato. A opção dupla aparece somente quando Stop and Drop existe e o campo de maestria está vazio.
+
+## Meat Shield
+
+O Core já publica `api.gap(a,b)`, que devolve a distância 3D em células, e `api.ui.budget(combatant)`, que expõe a reação disponível. O complemento converte alcance pelas unidades públicas do dnd5e, filtra e revalida as vítimas antes do gasto e usa a atividade de reação própria para consumir Moxie/orçamento. A repetição segue `runtime/reactions.mjs:298–312`: mesma atividade, `consume:false`, custo livre e alvo exato. A diferença é o filtro prévio de alcance. Como as APIs não oferecem transação conjunta para os dois documentos, uma queda depois do pagamento e antes da repetição permanece uma limitação documentada.
+
+## Haymaker
+
+`dnd5e.preUseActivity` é síncrono (`documents/activity/mixin.mjs:249–257`). O próprio DAS usa o padrão de cancelar, perguntar assincronamente e repetir o uso com um marcador. O handler do add-on é registrado em `ready`, depois das rotas de legalidade do Core, e só intercepta ataques próprios elegíveis. A atividade Haymaker arma a declaração nativa `maxDamage`; maximização, descarte no erro e reembolso no acerto continuam integralmente no DAS. Uma integração que ignore `activity.use` e chame `rollAttack` diretamente não emite esse hook, então permanece coberta pela atividade manual.

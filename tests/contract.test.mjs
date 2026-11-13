@@ -52,11 +52,8 @@ test("real DAS registry supports repeated registration and clean removal", () =>
   }
 });
 
-test("Heavy Hitter offers one follow-up with stable unarmed activity IDs", () => {
-  assert.deepEqual(CONTENT[I.heavyHitter].hitFollowUp, {
-    use: [{ item: I.unarmed, activity: A.grapple }, { item: I.unarmed, activity: A.shove }],
-    choose: 1, weapons: ["unarmed"]
-  });
+test("conditional Heavy Hitter and Stop and Drop follow-ups stay out of the unconditional DAS table", () => {
+  assert.equal(CONTENT[I.heavyHitter], undefined);
   assert.equal(CONTENT[I.stopAndDrop], undefined);
 });
 
@@ -93,7 +90,7 @@ test("Haymaker keeps flat modifiers while maximizing ordinary and critical dice"
   assert.equal(maximizeDice("2d10 + 1d6 + @mod"), "(2*10) + (1*6) + @mod");
 });
 
-test("conditional grapple benefits do not claim unsafe automation", () => {
+test("only the safe native grapple benefits remain in the DAS table", () => {
   assert.deepEqual(CONTENT[I.inescapable], { inescapable: { activity: A.inescapable } });
   assert.deepEqual(CONTENT[I.meatShield], { grappleCover: "half" });
   assert.equal(CONTENT[I.compression], undefined);

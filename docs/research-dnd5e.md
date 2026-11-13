@@ -22,6 +22,16 @@ Fonte clonada apenas para leitura em `.research/dnd5e`, tag `release-6.0.6`, com
 
 As referências a rotinas internas acima são evidência de como o esquema público funciona. Nenhuma delas é importada, sobrescrita ou chamada pelo add-on.
 
+## Hooks e mensagens usados pelos complementos 0.2.0
+
+- `Actor5e` documenta e emite `dnd5e.rollAbilityCheck`, `dnd5e.rollSkill` e `dnd5e.rollToolCheck` após o resultado (`module/documents/actor/actor.mjs:1430–1455,1640–1670`). O payload inclui `ability` e `subject`; a CD configurada permanece em `roll.options.target`.
+- `ActivityMixin.use` emite o hook cancelável `dnd5e.preUseActivity(activity, usageConfig, dialogConfig, messageConfig)` antes do uso (`module/documents/activity/mixin.mjs:249–257`). Haymaker cancela a primeira chamada e repete uma vez com flag própria, sem sobrescrever métodos.
+- `AttackActivity.rollAttack(config, dialog, message)` aceita a habilidade, munição, modo, maestria e configuração da mensagem (`module/documents/activity/attack.mjs:83–183`). Meat Shield repete a mesma atividade com `consume:false` e grava o descritor do alvo na mensagem, seguindo o uso do próprio DAS.
+- `ChatMessage` de ataque grava a maestria efetivamente escolhida em `system.mastery` (`attack.mjs:171–178`). Stop and Drop consulta somente esse campo, não a maestria potencial da arma.
+- As atividades de Swagger e Meat Shield consomem `itemUses` por identificador estável; a guarda `dnd5e.preUseActivity` recusa cliques diretos e aceita apenas chamadas marcadas depois que as condições do evento foram revalidadas.
+
+Esses são contratos públicos do sistema ou dados públicos de documentos. A implementação não importa módulos internos do dnd5e.
+
 ## Identificadores e compêndio
 
 `src/ids.mjs` centraliza IDs imutáveis de 16 caracteres para itens, atividades e efeitos. O pack é `rpgup-das-pugilist.pugilist`. Reconhecimento não depende de nomes nem do idioma do Babele. Duas características usam identificadores nativos por exigência do Core: `unarmed-strike` e `extra-attack`; o módulo não registra regras globais para esses identificadores. Os demais traços possuem prefixo `rpgup-pugilist-`. Classe `pugilist`, subclasse `squared-circle`.

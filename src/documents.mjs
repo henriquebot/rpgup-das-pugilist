@@ -141,7 +141,7 @@ export function createDocuments() {
   } }));
   docs.push(feat("heavyHitter", "Heavy Hitter — Peso Pesado", 3, "Após acertar um golpe desarmado, pode aplicar o dano e escolher Agarrar ou Empurrar contra o mesmo alvo. As salvaguardas e efeitos são resolvidos pelo DAS; não é um novo ataque."));
   docs.push(feat("groundwork", "Groundwork — Trabalho de Solo", 3, "Squared Circle: Compression Lock, Inescapable e Stop and Drop são descritos em suas características próprias. Aplicam-se apenas às relações de agarrão mantidas por este Pugilist."));
-  docs.push(feat("compression", "Compression Lock — Chave de Compressão", 3, "No início do seu turno, pode causar dano de concussão a cada criatura que esteja efetivamente agarrando, sem gastar ação. Cada criatura recebe dado de Fisticuffs + modificador de Força. Consulte o README para o estado da automação do gatilho.", { activities: {
+  docs.push(feat("compression", "Compression Lock — Chave de Compressão", 3, "No início do seu turno, se mantiver uma ou mais criaturas agarradas, o módulo oferece causar dano de concussão a cada uma, sem gastar ação. Cada criatura recebe uma rolagem própria do dado de Fisticuffs + modificador de Força.", { activities: {
     [ACTIVITY_IDS.compression]: activity(ACTIVITY_IDS.compression, "Compression Lock", "damage", "special", {
       damage: { critical: { allow: false, bonus: "" }, parts: [damagePart("@scale.pugilist.fisticuffs + @abilities.str.mod")] },
       target: { affects: { count: "", type: "creature", choice: false, special: "Apenas criaturas que você mantém agarradas" }, template: { type: "", units: "ft", contiguous: false }, override: false, prompt: false }
@@ -150,7 +150,7 @@ export function createDocuments() {
   docs.push(feat("inescapable", "Inescapable — Inescapável", 3, "Antes de uma salvaguarda ou teste contra seu Agarrar ou Empurrar, pode gastar 1 Moxie para impor Desvantagem àquela rolagem. O DAS oferece a decisão antes da rolagem pertinente.", { activities: {
     [ACTIVITY_IDS.inescapable]: activity(ACTIVITY_IDS.inescapable, "Inescapable", "utility", "special", { consumption: consumption([cost()]) })
   } }));
-  docs.push(feat("stopAndDrop", "Stop and Drop — Parar e Derrubar", 3, "Ao acertar um golpe desarmado sem usar uma propriedade de maestria nesse ataque, pode usar Agarrar e Empurrar, em interação com Heavy Hitter. Consulte o README: a condição de maestria precisa ser verificada para não conceder um efeito extra indevido."));
+  docs.push(feat("stopAndDrop", "Stop and Drop — Parar e Derrubar", 3, "Ao acertar um golpe desarmado sem usar uma propriedade de maestria nesse ataque, pode usar Agarrar e Empurrar contra o mesmo alvo. O módulo lê a maestria registrada no cartão de ataque antes de oferecer os dois efeitos."));
   docs.push(feat("muscleMass", "Muscle Mass — Massa Muscular", 3, "Escolha Acrobacia ou Atletismo no avanço nativo da subclasse. Recebe proficiência na perícia escolhida se não a possuía, ou Expertise se já era proficiente. A escolha fica registrada no avanço Trait em modo upgrade; não é reaplicada na recarga."));
   const dig = feat("digDeep", "Dig Deep — Reservas Profundas", 4, "Como ação bônus, por 10 minutos recebe resistência a concussão, perfurante e cortante e ignora os efeitos de Exhaustion inferior a 6, mantendo os níveis registrados. Uma utilização por descanso longo. Se o uso estiver gasto, pode escolher receber voluntariamente um nível de Exhaustion para recuperá-lo.", { uses: uses("1", "lr"), activities: {
     [ACTIVITY_IDS.digDeep]: activity(ACTIVITY_IDS.digDeep, "Dig Deep", "utility", "bonus", { consumption: consumption([cost("")]), effects: [{ _id: EFFECT_IDS.digDeep }], duration: { units: "minute", value: "10", concentration: false, override: false } }),
@@ -165,11 +165,13 @@ export function createDocuments() {
   }));
   docs.push(dig);
   docs.push(feat("extraAttack", "Extra Attack — Ataque Extra", 5, "Ao executar a ação Atacar, dispõe de duas oportunidades de ataque. Não aumenta ataques de oportunidade, reações ou ataques feitos como ação bônus. O DAS reconhece o identificador nativo extra-attack."));
-  docs.push(feat("haymaker", "Haymaker — Golpe Demolidor", 5, "Antes da rolagem de um golpe desarmado ou ataque com arma de Pugilist, pode gastar 1 Moxie. Se acertar, recupera o ponto gasto e maximiza os dados de dano desse ataque. Se errar, o ponto permanece gasto. A atividade prepara o próximo ataque elegível deste turno no DAS; consulte os limites documentados de decisão automática.", { activities: {
+  docs.push(feat("haymaker", "Haymaker — Golpe Demolidor", 5, "Antes da rolagem de um golpe desarmado ou ataque com arma de Pugilist, o módulo oferece gastar 1 Moxie. Se acertar, o DAS recupera o ponto gasto e maximiza os dados de dano desse ataque. Se errar, o ponto permanece gasto. A atividade manual continua disponível como alternativa segura.", { activities: {
     [ACTIVITY_IDS.haymaker]: activity(ACTIVITY_IDS.haymaker, "Preparar Haymaker antes do ataque", "utility", "special", { consumption: consumption([cost()]) })
   } }));
   docs.push(feat("fueledFists", "Moxie-Fueled Fists — Punhos de Moxie", 6, "A cada ataque desarmado ou com arma improvisada, pode escolher o tipo de dano normal ou Force. A escolha é feita pelo DAS para aquela ocorrência e não altera permanentemente equipamentos."));
-  docs.push(feat("meatShield", "Meat Shield — Escudo de Carne", 6, "Enquanto mantém uma criatura agarrada, recebe Meia Cobertura contra ataques de criaturas que não esteja agarrando. Quando uma delas errar, pode gastar reação e 1 Moxie para fazê-la repetir o mesmo ataque com nova rolagem contra uma criatura agarrada à sua escolha, respeitando alcance. O erro original não é convertido em acerto contra você. Consulte o README: cobertura e redirecionamento possuem estados de suporte distintos."));
+  docs.push(feat("meatShield", "Meat Shield — Escudo de Carne", 6, "Enquanto mantém uma criatura agarrada, recebe Meia Cobertura contra ataques de criaturas que não esteja agarrando. Quando uma delas errar, pode gastar reação e 1 Moxie para fazê-la repetir o mesmo ataque com nova rolagem contra uma criatura agarrada válida à sua escolha. O módulo valida vínculo, alcance, reação e Moxie antes do gasto.", { activities: {
+    [ACTIVITY_IDS.meatShield]: activity(ACTIVITY_IDS.meatShield, "Redirecionar com Meat Shield", "utility", "reaction", { consumption: consumption([cost()]) })
+  } }));
   return docs;
 }
 

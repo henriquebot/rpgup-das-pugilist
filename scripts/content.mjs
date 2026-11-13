@@ -17,13 +17,6 @@ export const CONTENT = Object.freeze({
   [I.bloodied]: {
     triggers: [{ on: "isDamaged", do: [{ type: "use", activity: A.bloodied, target: "self" }] }]
   },
-  [I.heavyHitter]: {
-    hitFollowUp: {
-      use: [{ item: I.unarmed, activity: A.grapple }, { item: I.unarmed, activity: A.shove }],
-      choose: 1,
-      weapons: ["unarmed"]
-    }
-  },
   [I.inescapable]: {
     inescapable: { activity: A.inescapable }
   },
@@ -46,7 +39,8 @@ export const SOURCES = Object.freeze(Object.fromEntries(Object.keys(CONTENT).map
 
 /**
  * Deliberately absent: martialArts switches attacks to Dexterity; grappleDamage
- * damages automatically without consent; unconditional choose:2 ignores mastery;
- * rollBonus.failRefund cannot reliably gate a locked feature with external uses;
- * redirect does not filter replacement targets by range before paying. See audit.
+ * damages automatically without consent; hitFollowUp cannot inspect the mastery
+ * stored on the attack message; rollBonus.failRefund also offers unknown-DC
+ * checks; redirect cannot filter replacement targets by range before paying.
+ * Public-hook complements implement those stricter gates without replacing DAS.
  */

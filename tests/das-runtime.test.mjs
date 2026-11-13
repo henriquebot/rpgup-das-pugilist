@@ -11,7 +11,7 @@ import { IDENTIFIERS as I, ACTIVITY_IDS as A } from "../src/ids.mjs";
 const root = resolve(process.env.DAS_ROOT ?? ".research/dnd5e-combat");
 const upstream = path => import(pathToFileURL(resolve(root, "module/scripts", path)).href);
 const registry = await upstream("content/index.mjs");
-const { followUpsFor, followUpCombos } = await upstream("runtime/follow-ups.mjs");
+const { followUpsFor } = await upstream("runtime/follow-ups.mjs");
 const { grapplerOf, victimsOf } = await upstream("adapter/grapple.mjs");
 const { inescapableFor, grappleRulesOf } = await upstream("adapter/grapple-rules.mjs");
 const { coverFor, setCoverAvailable } = await upstream("adapter/cover.mjs");
@@ -68,19 +68,13 @@ test("DAS runtime behavior against environment doubles (not Foundry E2E)", async
   registry.registerSources(source, SOURCES);
   registry.registerTable(source, CONTENT);
   try {
-    await t.test("Heavy Hitter uses the real runtime, filters weapons, and has no duplicate combinations", () => {
+    await t.test("Heavy Hitter is not exposed as an unconditional native follow-up", () => {
       const feature = item(I.heavyHitter, "heavyhittertest01");
       const unarmed = item("unarmed-strike", "unarmedtest00001");
       unarmed.type = "weapon";
-      const grapple = { id: A.grapple, uuid: `${unarmed.uuid}.Activity.${A.grapple}` };
-      const shove = { id: A.shove, uuid: `${unarmed.uuid}.Activity.${A.shove}` };
-      unarmed.system.activities = new Map([[A.grapple, grapple], [A.shove, shove]]);
       const own = actor([feature, unarmed]);
       const attack = { item: unarmed, attack: { type: { classification: "unarmed" } } };
-      const offer = followUpsFor(own, attack);
-      assert.equal(offer.choose, 1);
-      assert.deepEqual(offer.activities, [grapple, shove]);
-      assert.deepEqual(followUpCombos(offer.activities, offer.choose), [[grapple], [shove]]);
+      assert.equal(followUpsFor(own, attack), null);
       assert.equal(followUpsFor(own, { item: { system: { type: { value: "simpleM" } } } }), null);
       assert.equal(followUpsFor(actor([unarmed]), attack), null);
     });

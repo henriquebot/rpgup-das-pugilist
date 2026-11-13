@@ -38,7 +38,7 @@ export function fisticuffsEligible(actor) {
     && i.system.identifier !== 'unarmed-strike');
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
-export function activityAllowed(activity, contentApi = null) {
+export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
   const key = ownedKey(activity?.item);
   if (!key) return true;
   const actor = activity.actor ?? activity.item.actor;
@@ -50,9 +50,10 @@ export function activityAllowed(activity, contentApi = null) {
     const count = key === 'oneTwoPunch' ? 2 : 1;
     if ((contentApi?.inspect?.(actor) ?? []).some(row => Number(row.entry?.flurryStrikes) > count)) return false;
   }
-  // These activities do not have a faithful event integration in this version.
-  // Reject instead of taking Moxie or damaging an arbitrary selected creature.
-  if (['swagger', 'compression', 'meatShield'].includes(key)) return false;
+  // Event-driven activities are not safe to click directly. Their complements
+  // mark the exact validated event before dnd5e is allowed to consume anything.
+  if (['swagger', 'compression', 'meatShield'].includes(key)
+    && usageConfig?.[MODULE_ID]?.automation !== key) return false;
   if (activity.id === A.digRecharge) {
     const spent = Number(feature(actor, 'digDeep')?.system?.uses?.spent) || 0;
     const exhaustion = Number(actor.system?.attributes?.exhaustion) || 0;
@@ -104,5 +105,5 @@ export function actorDiagnostics(actor) {
   const list = itemsOf(actor);
   const duplicates = Object.keys(I).filter(key => list.filter(i => i.system?.identifier === I[key]).length > 1);
   return { level: pugilistLevel(actor), duplicates, schemaVersions: [...new Set(list.filter(ownedKey).map(i => i.flags[MODULE_ID].schemaVersion))],
-    unsupportedFeatures: ['Swagger Streak', 'Compression Lock', 'Stop and Drop', 'Meat Shield (redirecionamento)'] };
+    automation: { swagger: 'hook', compression: 'hook', stopAndDrop: 'hook', meatShield: 'hook', haymaker: 'hook+DAS' } };
 }

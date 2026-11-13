@@ -88,9 +88,13 @@ test('bonus strike and Dig Deep voluntary recharge have explicit native-use guar
   assert.equal(activityAllowed(recharge), false);
 });
 
-test('unimplemented activities cannot consume Moxie or apply arbitrary damage', () => {
+test('event activities run only with the module automation marker', () => {
   const actor = actorAt(6);
-  for (const key of ['swagger', 'compression', 'meatShield']) assert.equal(activityAllowed({ item: item(actor, key), actor }), false);
+  for (const key of ['swagger', 'compression', 'meatShield']) {
+    const event = { item: item(actor, key), actor };
+    assert.equal(activityAllowed(event), false);
+    assert.equal(activityAllowed(event, null, { [MODULE_ID]: { automation: key } }), true);
+  }
   assert.equal(activityAllowed({ item: { type: 'spell', system: { identifier: 'fireball' } } }), true);
 });
 
