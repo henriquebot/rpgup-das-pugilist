@@ -1,12 +1,12 @@
 # RPGUp DAS Pugilist
 
-Add-on para **Foundry VTT 14.370, dnd5e 6.0.6 e DAS Core 0.282.1**. Contém a classe Pugilist do nível 1 ao 6 e somente a subclasse Squared Circle. Versão **0.2.0, pré-lançamento para validação**.
+Add-on para **Foundry VTT 14.370, dnd5e 6.0.6 e DAS Core 0.282.1**. Contém a classe Pugilist do nível 1 ao 6 e somente a subclasse Squared Circle. Versão **0.2.1, pré-lançamento para validação**.
 
 As cinco mecânicas prioritárias agora possuem complementos assistidos, mas ainda exigem validação dentro do Foundry. Swagger requer uma CD numérica conhecida; Haymaker automático cobre o fluxo normal de `activity.use`; Meat Shield depende da continuidade entre pagamento e repetição do ataque. Leia a matriz antes de usar em campanha.
 
 ## Instalar e utilizar
 
-No instalador de módulos do Foundry, use o [manifesto v0.2.0](https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.0/module.json). O [ZIP e as notas da versão](https://github.com/henriquebot/rpgup-das-pugilist/releases/tag/v0.2.0) são gerados pelo workflow de release.
+No instalador de módulos do Foundry, use o [manifesto v0.2.1](https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.1/module.json). O [ZIP e as notas da versão](https://github.com/henriquebot/rpgup-das-pugilist/releases/tag/v0.2.1) são gerados pelo workflow de release.
 
 1. Ative DAS Core e RPGUp DAS Pugilist no mundo de teste.
 2. Abra o compêndio **RPGUp · Pugilist (1–6)** e arraste **Pugilist** para um personagem novo. Use os avanços nativos ao subir de nível.
