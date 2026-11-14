@@ -14,6 +14,7 @@ import { configureGroundwork, originalGroundworkActivityAllowed } from './ground
 import { configureMuscleMass } from './muscle-mass.mjs';
 import { configureDigDeep, originalDigDeepActivityAllowed } from './dig-deep.mjs';
 import { inspectUnarmed } from './unarmed.mjs';
+import { inspectLevel4ASI } from './asi-level4.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -93,6 +94,10 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    asiLevel4(actor) {
+      if (!env.game.user?.isGM) throw new Error('Diagnóstico de ASI disponível somente ao Mestre.');
+      return inspectLevel4ASI(actor);
+    },
     unarmed(actor) {
       if (!env.game.user?.isGM) throw new Error('Diagnóstico de Unarmed Strike disponível somente ao Mestre.');
       return inspectUnarmed(actor);
@@ -137,7 +142,7 @@ export function install(env) {
     diagnostics(actor) {
       if (!env.game.user?.isGM) throw new Error('Diagnóstico disponível somente ao Mestre.');
       return { enabled: enabled(), versions: { foundry: env.game.version, dnd5e: env.game.system.version, core: env.game.modules.get('dnd5e-combat')?.version },
-        registration, lastError, ...(actor ? { actor: actorDiagnostics(actor) } : {}) };
+        registration, lastError, ...(actor ? { actor: { ...actorDiagnostics(actor), asiLevel4: inspectLevel4ASI(actor) } } : {}) };
     },
     shutdown() {
       stopped = true;

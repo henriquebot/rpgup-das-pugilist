@@ -34,7 +34,7 @@ Não há importação manual de JSON, macros obrigatórias ou dependência de `p
 | 3 | Inescapable | Pergunta e custo do DAS antes das salvaguardas de Grapple/Shove e testes de escapar pertinentes. |
 | 3 | Stop and Drop | **Assistida:** lê `ChatMessage.system.mastery` do ataque. Sem maestria usada, acrescenta a opção de aplicar Agarrar e Empurrar; com maestria, Heavy Hitter continua limitado a um efeito. |
 | 3 | Muscle Mass | Avanço nativo persistente: proficiência ou Expertise em Acrobacia/Atletismo. |
-| 4 | ASI / talento | Avanço nativo AbilityScoreImprovement. |
+| 4 | ASI / talento | Avanço nativo AbilityScoreImprovement para personagens criados pelo RPGUp. Para personagens importados do 5etools, `api.asiLevel4(actor)` verifica a classe e os talentos já presentes, sem conceder ASI adicional. |
 | 4 | Dig Deep | Efeito nativo de 10 minutos, resistências B/P/S; imunidade derivada às penalidades de Exhaustion 1–5, sem apagar níveis. Recuperação voluntária do uso recebe +1 Exhaustion; bloqueada com 6 níveis. |
 | 5 | Extra Attack | Duas oportunidades na ação Attack pelo identificador nativo do DAS; não multiplica bônus/reações. |
 | 5 | Haymaker | **Assistida:** pergunta antes de cada `activity.use` elegível, depois das guardas de legalidade. A atividade nativa arma o Core; ele maximiza os dados e reembolsa no acerto, mantendo o custo no erro. Chamadas diretas a `rollAttack` usam a atividade manual. |
