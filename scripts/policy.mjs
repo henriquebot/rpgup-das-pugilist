@@ -17,6 +17,8 @@ export const importedIronChin = item => item?.type === 'feat' && item.system?.id
   && legacy(item, 'classFeature', 'iron%20chin_pugilist_pugilist2024_1_pugilist2024');
 export const importedMoxie = item => item?.type === 'feat' && item.system?.identifier === 'moxie'
   && legacy(item, 'classFeature', 'moxie_pugilist_pugilist2024_2_pugilist2024');
+export const importedBloodied = item => item?.type === 'feat' && item.system?.identifier === 'bloodied-but-unbowed'
+  && legacy(item, 'classFeature', 'bloodied%20but%20unbowed_pugilist_pugilist2024_2_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
   && legacy(item, 'items.html', 'unarmed%20strike%20(pugilist)_pugilist2024');
 export const ownedKey = item => {
@@ -33,6 +35,12 @@ export function feature(actor, key) {
   const level = pugilistLevel(actor);
   if (!level || level < (MIN_LEVEL[key] ?? 1)) return null;
   if (SUBCLASS.has(key) && !itemsOf(actor).some(i => i.type === 'subclass' && ownedKey(i) === 'squaredCircle')) return null;
+  if (key === 'bloodied') {
+    const originals = itemsOf(actor).filter(importedBloodied);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'bloodied');
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
+  }
   if (key === 'moxie') {
     const originals = itemsOf(actor).filter(importedMoxie);
     const addon = itemsOf(actor).filter(i => ownedKey(i) === 'moxie');
@@ -74,6 +82,11 @@ export function fisticuffsEligible(actor) {
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
 export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
+  // The main hook passes the pure opt-in Bloodied eligibility check through
+  // this adapter. In its absence, the original reaction fails closed.
+  if (importedBloodied(activity?.item) && ['dnd5eactivity000', 'dnd5eactivity001'].includes(activity.id))
+    return contentApi?.bloodiedCheck?.(activity) === true;
+
   // Imported Moxie already has One-Two Punch as a bonus-action Utility.
   // Require the exact opt-in DAS item layer before this activity can spend Moxie.
   if (importedMoxie(activity?.item) && activity.id === 'dnd5eactivity001' && activity.type === 'utility') {
@@ -109,6 +122,7 @@ export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
   if (!feature(actor, key)) return false;
   if (key === 'braceUp' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'oneTwoPunch' && importedMoxie(feature(actor, 'moxie'))) return false;
+  if (key === 'bloodied' && importedBloodied(feature(actor, 'bloodied'))) return false;
   if (key === 'stickAndMove' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'fisticuffs' && feature(actor, key) !== activity.item) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;

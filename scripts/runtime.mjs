@@ -1,5 +1,6 @@
 import { MODULE_ID, ACTIVITY_IDS as A } from '../src/ids.mjs';
-import { feature, pugilistLevel, ownedKey } from './policy.mjs';
+import { feature, pugilistLevel, ownedKey, importedBloodied } from './policy.mjs';
+import { originalBloodiedAllowed, isBloodiedHealing, usedDamagePatch } from './bloodied.mjs';
 import { sourceHealingActivity, isBraceUpHealing } from './brace-up.mjs';
 
 /** Only the process executing activity.use() reaches postUseActivity. Broadcast
@@ -23,10 +24,14 @@ export function createRuntime(env) {
     return owners[0]?.id === env.game.user?.id;
   }
   async function bloodied(activity, config, result) {
-    if (ownedKey(activity?.item) !== 'bloodied' || activity.id !== A.bloodied || !result?.message?.id) return;
+    const original = importedBloodied(activity?.item) && ['dnd5eactivity000', 'dnd5eactivity001'].includes(activity.id);
+    const fallback = ownedKey(activity?.item) === 'bloodied' && activity.id === A.bloodied;
+    if (!(original || fallback) || !result?.message?.id) return;
     const actor = activity.actor;
     const moxie = feature(actor, 'moxie');
-    if (!moxie || !feature(actor, 'bloodied')) return;
+    if (!moxie || feature(actor, 'bloodied') !== activity.item) return;
+    // The item has already consumed its own once-per-rest use at postUse.
+    if (original && !originalBloodiedAllowed(activity, { requireUnspent: false })) return;
     const eventKey = `${actor.uuid}:${result.message.id}`;
     if (seen.has(eventKey)) return;
     seen.add(eventKey);
@@ -38,8 +43,11 @@ export function createRuntime(env) {
       await actor.updateEmbeddedDocuments('Item', [{ _id: moxie.id, 'system.uses.spent': 0 }]);
       const health = hp(actor);
       const amount = 4 * pugilistLevel(actor);
-      const updates = { [`flags.${MODULE_ID}.bloodiedEvent`]: result.message.id };
-      if (Number(health?.value) <= Number(health?.max) / 2 && amount > Number(health?.temp ?? 0)) {
+      const updates = { [`flags.${MODULE_ID}.bloodiedEvent`]: result.message.id,
+        ...(original ? usedDamagePatch(actor) : {}) };
+      // For Plutonium's original HEAL activity, native dnd5e rolls and applies
+      // the temporary HP. Do not grant it a second time here.
+      if (!original && Number(health?.value) <= Number(health?.max) / 2 && amount > Number(health?.temp ?? 0)) {
         updates['system.attributes.hp.temp'] = amount;
         updates[`flags.${MODULE_ID}.tempHp`] = { source: 'bloodied', remaining: amount, expiresAt: null, shortRest: true };
       }
@@ -49,7 +57,9 @@ export function createRuntime(env) {
       if (result.message.update && !result.message.getFlag?.(MODULE_ID, 'bloodiedSummary')) {
         const granted = Object.hasOwn(updates, 'system.attributes.hp.temp') ? amount : 0;
         const totalTemp = Number(actor.system?.attributes?.hp?.temp) || 0;
-        const summary = `<p data-rpgup-pugilist="bloodied">Moxie recuperada: ${restored}. PV temporários concedidos: ${granted} (total atual: ${totalTemp}).</p>`;
+        const summary = original
+          ? `<p data-rpgup-pugilist="bloodied">Moxie recuperada: ${restored}. PV temporários: utilize a rolagem nativa da atividade Bloodied, se disponível.</p>`
+          : `<p data-rpgup-pugilist="bloodied">Moxie recuperada: ${restored}. PV temporários concedidos: ${granted} (total atual: ${totalTemp}).</p>`;
         await result.message.update({ content: `${result.message.content ?? ''}${summary}`, [`flags.${MODULE_ID}.bloodiedSummary`]: true });
       }
     }).catch(error => {
@@ -68,6 +78,8 @@ export function createRuntime(env) {
     const sourceActivity = sourceHealingActivity(options);
     if (next > current && isBraceUpHealing(sourceActivity, actor)) {
       updates[`flags.${MODULE_ID}.tempHp`] = { source: 'braceUp', remaining: next, expiresAt: Number(env.game.time.worldTime) + 600, shortRest: false };
+    } else if (next > current && isBloodiedHealing(sourceActivity, actor)) {
+      updates[`flags.${MODULE_ID}.tempHp`] = { source: 'bloodied', remaining: next, expiresAt: null, shortRest: true };
     } else if (next < current && state(actor)) {
       updates[`flags.${MODULE_ID}.tempHp`] = next > 0 ? { ...state(actor), remaining: next } : null;
     } else if (next > current && state(actor)) updates[`flags.${MODULE_ID}.tempHp`] = null;

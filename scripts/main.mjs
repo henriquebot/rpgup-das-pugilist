@@ -7,6 +7,7 @@ import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
 import { migrateIronChin } from './iron-chin.mjs';
 import { configureOneTwoPunch } from './one-two-punch.mjs';
 import { configureStickAndMove, createStickAndMoveIntegration } from './stick-and-move.mjs';
+import { configureBloodied, originalBloodiedAllowed, markBloodiedDamage } from './bloodied.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -53,12 +54,15 @@ export function install(env) {
   on('dnd5e.preUseActivity', guarded(stickMove.preUse));
   on('dnd5e.postUseActivity', asyncGuarded(stickMove.postUse));
   on('dnd5e.preUseActivity', guarded((activity, usageConfig) => {
-    if (!activityAllowed(activity, env.game.modules.get('dnd5e-combat')?.api?.content, usageConfig)) {
+    const core = env.game.modules.get('dnd5e-combat')?.api?.content;
+    const content = { inspect: actor => core?.inspect?.(actor), bloodiedCheck: originalBloodiedAllowed };
+    if (!activityAllowed(activity, content, usageConfig)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
       return false;
     }
   }));
   on('dnd5e.postUseActivity', asyncGuarded(runtime.bloodied));
+  on('dnd5e.preApplyDamage', guarded((actor, amount, updates) => markBloodiedDamage(actor, amount, updates)));
   on('dnd5e.preApplyDamage', guarded(runtime.trackTemporaryHp));
   on('preUpdateActor', guarded(runtime.manualTemporaryHp));
   on('updateWorldTime', asyncGuarded(runtime.expireAll));
@@ -80,6 +84,11 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    bloodied(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode corrigir Bloodied But Unbowed.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return configureBloodied(actor, { ...options, isGM: true });
+    },
     stickAndMove(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar Stick and Move.');
       if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
