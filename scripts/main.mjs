@@ -6,6 +6,7 @@ import { createAutomation } from './automation.mjs';
 import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
 import { migrateIronChin } from './iron-chin.mjs';
 import { configureOneTwoPunch } from './one-two-punch.mjs';
+import { configureStickAndMove, createStickAndMoveIntegration } from './stick-and-move.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -17,6 +18,7 @@ export function install(env) {
   const hooks = [];
   const runtime = createRuntime(env);
   const automation = createAutomation(env);
+  const stickMove = createStickAndMoveIntegration(env);
   let stopped = false;
   let registration = null;
   let lastError = null;
@@ -46,6 +48,10 @@ export function install(env) {
   on('dnd5e.preRollAttackV2', guarded(applyImprovisedSap));
   on('dnd5e.preRollAttackV2', guarded(applyImprovisedTraining));
   on('dnd5e.preRollDamageV2', guarded(applyFisticuffsDamage));
+  // Before DAS's init-time legality handler: mark exactly one attack's
+  // occurrence as free, while keeping native targeting/roll resolution.
+  on('dnd5e.preUseActivity', guarded(stickMove.preUse));
+  on('dnd5e.postUseActivity', asyncGuarded(stickMove.postUse));
   on('dnd5e.preUseActivity', guarded((activity, usageConfig) => {
     if (!activityAllowed(activity, env.game.modules.get('dnd5e-combat')?.api?.content, usageConfig)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
@@ -74,6 +80,11 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    stickAndMove(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar Stick and Move.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return configureStickAndMove(actor, { ...options, isGM: true });
+    },
     // Optional, reversible item-level DAS rule. Does not touch activities.
     oneTwoPunch(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar One-Two Punch.');

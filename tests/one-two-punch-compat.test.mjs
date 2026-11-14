@@ -64,7 +64,8 @@ test('DAS can use original One-Two only after registration; other activities una
   await configureOneTwoPunch(actor, { apply: true, isGM: true });
   assert.equal(activityAllowed(activity, api), true);
   const other = { ...activity, id: 'dnd5eactivity002' };
-  assert.equal(activityAllowed(other, api), true);
+  // Stick and Move must not spend Moxie until its own DAS integration is enabled.
+  assert.equal(activityAllowed(other, api), false);
 });
 
 test('greater flurryStrikes from another feature cannot grant a third attack', async () => {
