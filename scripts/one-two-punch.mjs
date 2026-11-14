@@ -1,5 +1,6 @@
 import { MODULE_ID } from '../src/ids.mjs';
 import { feature, importedMoxie } from './policy.mjs';
+import { sourceUsesMax } from './uses-source.mjs';
 
 const DAS = 'dnd5e-combat';
 const ACTIVITY = 'dnd5eactivity001';
@@ -19,7 +20,7 @@ function inspect(actor) {
   const hasNativeCost = targets.length === 1 && targets[0].type === 'itemUses'
     && targets[0].target === item.id && String(targets[0].value) === '1';
   if (activity?.type !== 'utility' || activity.activation?.type !== 'bonus'
-    || !hasNativeCost || item.system?.uses?.max !== '@scale.pugilist.moxie'
+    || !hasNativeCost || sourceUsesMax(item) !== '@scale.pugilist.moxie'
     || !recovery.some(r => r.period === 'sr' && r.type === 'recoverAll'))
     return { status: 'unsupported-activity', item, activity };
 

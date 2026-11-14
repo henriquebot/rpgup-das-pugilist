@@ -2,7 +2,7 @@
   "id": "rpgup-das-pugilist",
   "title": "RPGUp DAS Pugilist",
   "description": "Pugilist níveis 1–6 e Squared Circle para DAS, com automações assistidas. Consulte a matriz de validação.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "authors": [
     {
       "name": "RPGUp"
@@ -63,6 +63,6 @@
   ],
   "url": "https://github.com/henriquebot/rpgup-das-pugilist",
   "manifest": "https://raw.githubusercontent.com/henriquebot/rpgup-das-pugilist/main/module.json",
-  "download": "https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.1/rpgup-das-pugilist.zip",
+  "download": "https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.2/rpgup-das-pugilist.zip",
   "license": "LICENSE"
 }

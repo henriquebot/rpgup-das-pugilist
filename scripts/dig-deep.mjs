@@ -1,5 +1,6 @@
 import { MODULE_ID } from '../src/ids.mjs';
 import { feature, importedDigDeep } from './policy.mjs';
+import { sourceUsesMax } from './uses-source.mjs';
 
 const BASE = 'dnd5eactivity000';
 const RECHARGE = 'dnd5eactivity001';
@@ -22,7 +23,7 @@ const plain = d => d?.toObject?.() ?? d;
 const changesOf = effect => clone(plain(effect)?.system?.changes ?? values(effect?.system?.changes).map(plain));
 const targetsOf = activity => values(activity?.consumption?.targets).map(v => clone(plain(v)));
 const linksOf = activity => values(activity?.effects).map(v => clone(plain(v)));
-const usesSource = item => item?.system?.uses?.max === '1'
+const usesSource = item => String(sourceUsesMax(item)) === '1'
   && values(item.system?.uses?.recovery).some(r => r.period === 'lr' && r.type === 'recoverAll');
 const isRegular = (activity, effectId) => activity?.type === 'utility' && activity.activation?.type === 'bonus'
   && targetsOf(activity).length === 1 && targetsOf(activity)[0].type === 'itemUses'

@@ -184,3 +184,12 @@ test('not allowed without the correct content adapter',async()=>{
   assert.equal(activityAllowed(f.actions[1]),false);
   assert.equal(activityAllowed(f.actions[1],{bloodiedCheck:originalBloodiedAllowed}),true);
 });
+
+test('prepared numeric Bloodied max keeps original once-per-rest semantics', async () => {
+  const { actor, item } = fixture();
+  item._source = { system: { uses: { max: '1' } } };
+  item.system.uses.max = 1;
+  assert.equal((await configureBloodied(actor)).status, 'ready');
+  item._source.system.uses.max = '2';
+  assert.equal((await configureBloodied(actor)).status, 'unsupported-activity');
+});

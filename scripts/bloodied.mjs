@@ -1,5 +1,6 @@
 import { MODULE_ID } from '../src/ids.mjs';
 import { feature, importedBloodied, pugilistLevel } from './policy.mjs';
+import { sourceUsesMax } from './uses-source.mjs';
 
 const REGULAR = 'dnd5eactivity000';
 const BLOODIED = 'dnd5eactivity001';
@@ -26,7 +27,7 @@ function inspect(actor) {
     && activities.every(a => a?.activation?.type === 'reaction'
       && costsOf(a).length === 1 && costsOf(a)[0].type === 'itemUses'
       && String(costsOf(a)[0].value) === '1')
-    && item.system?.uses?.max === '1'
+    && String(sourceUsesMax(item)) === '1'
     && recovery.some(r => r.period === 'sr' && r.type === 'recoverAll')
     && second.healing?.custom?.enabled === true
     && second.healing?.custom?.formula === '@classes.pugilist.levels * 4'

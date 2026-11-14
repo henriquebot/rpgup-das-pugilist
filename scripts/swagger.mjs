@@ -1,5 +1,6 @@
 import { MODULE_ID } from '../src/ids.mjs';
 import { feature, importedSwagger, pugilistLevel } from './policy.mjs';
+import { sourceUsesMax } from './uses-source.mjs';
 
 export const ORIGINAL_SWAGGER_USE = 'dnd5eactivity000';
 export const ORIGINAL_SWAGGER_END = 'dnd5eactivity001';
@@ -25,7 +26,7 @@ export function originalSwaggerSetup(actor) {
   if (!moxie || !use || !end || use.type !== 'utility' || end.type !== 'utility'
       || use.activation?.type !== 'special' || end.activation?.type !== 'special'
       || use.roll?.formula !== '@scale.pugilist.fisticuffs'
-      || item.system?.uses?.max !== '1'
+      || String(sourceUsesMax(item)) !== '1'
       || !Array.from(item.system.uses?.recovery ?? []).some(r => r.period === 'sr' && r.type === 'recoverAll')) return null;
   const a = costs(use), b = costs(end);
   if (a.length !== 1 || a[0]?.type !== 'itemUses' || a[0]?.target !== moxie.id || String(a[0]?.value) !== '1'

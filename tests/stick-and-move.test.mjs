@@ -175,3 +175,12 @@ test('restore removes only owned item flags, One-Two and native activities remai
   assert.equal(activityAllowed(f.stick), false);
   assert.deepEqual({ stick: f.stick.consumption, oneTwo: f.oneTwo.consumption }, activities);
 });
+
+test('prepared numeric Moxie max is accepted only with the exact source formula', async () => {
+  const { actor, item } = fixture();
+  item._source = { system: { uses: { max: '@scale.pugilist.moxie' } } };
+  item.system.uses.max = 3;
+  assert.equal((await configureStickAndMove(actor)).status, 'ready');
+  item._source.system.uses.max = '@scale.other.wrong';
+  assert.equal((await configureStickAndMove(actor)).status, 'unsupported-activity');
+});

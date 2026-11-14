@@ -101,3 +101,13 @@ test('existing DAS content or modified activity causes conflict without overwrit
   activity.consumption.targets[0].value = '2';
   assert.equal((await configureOneTwoPunch(actor)).status, 'unsupported-activity');
 });
+
+test('prepared numeric Moxie max preserves source formula and allows installation', async () => {
+  const { actor, moxie } = fixture();
+  moxie._source = { system: { uses: { max: '@scale.pugilist.moxie' } } };
+  moxie.system.uses.max = 3;
+  assert.equal((await configureOneTwoPunch(actor)).status, 'ready');
+  assert.equal((await configureOneTwoPunch(actor, { apply: true, isGM: true })).status, 'installed');
+  moxie._source.system.uses.max = '@scale.other.wrong';
+  assert.equal((await configureOneTwoPunch(actor)).status, 'unsupported-activity');
+});

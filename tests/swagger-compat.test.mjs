@@ -103,3 +103,12 @@ test('wrong costs, type, formula, source, duplicate item and insufficient Moxie 
   f.moxie.system.uses.spent = 3;
   assert.equal((await resolveOriginalSwagger(f.actor, { total: 8, dc: 10 })).status, 'no-uses');
 });
+
+test('Swagger accepts evaluated numeric maximum only with valid original source', () => {
+  const { actor, item } = fixture();
+  item._source = { system: { uses: { max: '1' } } };
+  item.system.uses.max = 1;
+  assert.ok(originalSwaggerSetup(actor));
+  item._source.system.uses.max = '2';
+  assert.equal(originalSwaggerSetup(actor), null);
+});

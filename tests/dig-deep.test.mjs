@@ -178,3 +178,12 @@ test('foreign changes after migration block a blind rollback',async()=>{
   assert.equal((await configureDigDeep(f.actor,{apply:true,restore:true,isGM:true})).status,'conflict');
   assert.equal(f.item.writes.length,1);
 });
+
+test('Dig Deep validates raw one-use value before migrated numeric data', () => {
+  const { actor, item } = fixture();
+  item._source = { system: { uses: { max: '1' } } };
+  item.system.uses.max = 1;
+  assert.equal(inspectDigDeep(actor).status, 'ready');
+  item._source.system.uses.max = '2';
+  assert.equal(inspectDigDeep(actor).status, 'unsupported-uses');
+});

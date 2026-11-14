@@ -1,5 +1,6 @@
 import { MODULE_ID } from '../src/ids.mjs';
 import { feature, importedMoxie } from './policy.mjs';
+import { sourceUsesMax } from './uses-source.mjs';
 
 const DAS = 'dnd5e-combat';
 const ACTIVITY = 'dnd5eactivity002';
@@ -25,7 +26,7 @@ function inspect(actor) {
   const costs = Array.from(activity?.consumption?.targets ?? []);
   if (activity?.type !== 'utility' || activity.activation?.type !== 'bonus' || costs.length !== 1
     || costs[0].type !== 'itemUses' || costs[0].target !== item.id || String(costs[0].value) !== '1'
-    || item.system?.uses?.max !== '@scale.pugilist.moxie') return { status: 'unsupported-activity', item, activity };
+    || sourceUsesMax(item) !== '@scale.pugilist.moxie') return { status: 'unsupported-activity', item, activity };
   const rules = item.flags?.[DAS]?.basicActions;
   const marker = item.flags?.[MODULE_ID]?.[KEY];
   const hasRules = Object.hasOwn(item.flags?.[DAS] ?? {}, 'basicActions');
