@@ -9,6 +9,7 @@ import { configureOneTwoPunch } from './one-two-punch.mjs';
 import { configureStickAndMove, createStickAndMoveIntegration } from './stick-and-move.mjs';
 import { configureBloodied, originalBloodiedAllowed, markBloodiedDamage } from './bloodied.mjs';
 import { originalSwaggerAllowed } from './swagger.mjs';
+import { createHeavyHitter } from './heavy-hitter.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -20,6 +21,7 @@ export function install(env) {
   const hooks = [];
   const runtime = createRuntime(env);
   const automation = createAutomation(env);
+  const heavyHitter = createHeavyHitter(env, { choose: automation.choose });
   const stickMove = createStickAndMoveIntegration(env);
   let stopped = false;
   let registration = null;
@@ -71,6 +73,7 @@ export function install(env) {
   for (const hook of ['dnd5e.rollAbilityCheck', 'dnd5e.rollSkill', 'dnd5e.rollToolCheck']) on(hook, asyncGuarded(automation.swagger));
   on('combatTurnChange', guarded(automation.compression));
   on('dnd5e-combat.resolution', guarded(automation.resolution));
+  on('dnd5e-combat.resolution', asyncGuarded(heavyHitter.resolution));
   on('dnd5e-combat.registerContent', register);
   let lateHooks = false;
   on('ready', () => {

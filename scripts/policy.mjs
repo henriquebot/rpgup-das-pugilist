@@ -19,6 +19,8 @@ export const importedMoxie = item => item?.type === 'feat' && item.system?.ident
   && legacy(item, 'classFeature', 'moxie_pugilist_pugilist2024_2_pugilist2024');
 export const importedSwagger = item => item?.type === 'feat' && item.system?.identifier === 'swagger-streak'
   && legacy(item, 'classFeature', 'swagger%20streak_pugilist_pugilist2024_2_pugilist2024');
+export const importedHeavyHitter = item => item?.type === 'feat' && item.system?.identifier === 'heavy-hitter'
+  && legacy(item, 'classFeature', 'heavy%20hitter_pugilist_pugilist2024_3_pugilist2024');
 export const importedBloodied = item => item?.type === 'feat' && item.system?.identifier === 'bloodied-but-unbowed'
   && legacy(item, 'classFeature', 'bloodied%20but%20unbowed_pugilist_pugilist2024_2_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
@@ -37,6 +39,12 @@ export function feature(actor, key) {
   const level = pugilistLevel(actor);
   if (!level || level < (MIN_LEVEL[key] ?? 1)) return null;
   if (SUBCLASS.has(key) && !itemsOf(actor).some(i => i.type === 'subclass' && ownedKey(i) === 'squaredCircle')) return null;
+  if (key === 'heavyHitter') {
+    const originals = itemsOf(actor).filter(importedHeavyHitter);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'heavyHitter');
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
+  }
   if (key === 'swagger') {
     const originals = itemsOf(actor).filter(importedSwagger);
     const addon = itemsOf(actor).filter(i => ownedKey(i) === 'swagger');

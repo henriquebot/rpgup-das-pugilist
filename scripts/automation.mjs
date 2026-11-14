@@ -339,6 +339,6 @@ export function createAutomation(env) {
     meatShield(value).catch(report);
   }
 
-  return { registerQuery, swagger, haymaker, compression, resolution, heldVictims: token => heldVictims(env, token),
+  return { registerQuery, choose, swagger, haymaker, compression, resolution, heldVictims: token => heldVictims(env, token),
     redirectRange: (...args) => redirectRange(env, ...args), idle: () => Promise.all([...pending.values()]) };
 }

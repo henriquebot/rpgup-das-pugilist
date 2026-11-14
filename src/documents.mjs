@@ -205,7 +205,15 @@ export function createDocuments() {
     <p><em>O ajuste é informado numa mensagem complementar; o resultado original do d20 não é reescrito.</em></p>
   </div>`;
   docs.push(swagger);
-  docs.push(feat("heavyHitter", "Heavy Hitter — Peso Pesado", 3, "Após acertar um golpe desarmado, pode aplicar o dano e escolher Agarrar ou Empurrar contra o mesmo alvo. As salvaguardas e efeitos são resolvidos pelo DAS; não é um novo ataque."));
+  const heavy = feat("heavyHitter", "Heavy Hitter — Peso Pesado", 3,
+    "Após acertar um golpe desarmado, pode aplicar o dano e escolher Agarrar ou Empurrar contra o mesmo alvo. As salvaguardas e efeitos são resolvidos pelo DAS; não é um novo ataque.");
+  heavy.system.description.value = `<div class="ddb">
+    <h2>Heavy Hitter — Peso Pesado</h2>
+    <p>Ao <strong>acertar um ataque desarmado</strong>, você pode causar o dano normal <strong>e</strong> usar a opção Agarrar ou Empurrar contra a mesma criatura.</p>
+    <p>O alvo realiza a salvaguarda de <strong>Força ou Destreza</strong> apropriada contra sua CD de agarrão/empurrão.</p>
+    <p>A opção é oferecida após um acerto confirmado. A salvaguarda e os efeitos usam a ação de ataque desarmado já existente no DAS, sem outro ataque e sem gastar uma segunda ação.</p>
+  </div>`;
+  docs.push(heavy);
   docs.push(feat("groundwork", "Groundwork — Trabalho de Solo", 3, "Squared Circle: Compression Lock, Inescapable e Stop and Drop são descritos em suas características próprias. Aplicam-se apenas às relações de agarrão mantidas por este Pugilist."));
   docs.push(feat("compression", "Compression Lock — Chave de Compressão", 3, "No início do seu turno, se mantiver uma ou mais criaturas agarradas, o módulo oferece causar dano de concussão a cada uma, sem gastar ação. Cada criatura recebe uma rolagem própria do dado de Fisticuffs + modificador de Força.", { activities: {
     [ACTIVITY_IDS.compression]: activity(ACTIVITY_IDS.compression, "Compression Lock", "damage", "special", {
