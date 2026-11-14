@@ -74,6 +74,17 @@ export function fisticuffsEligible(actor) {
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
 export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
+  // Imported Moxie already has One-Two Punch as a bonus-action Utility.
+  // Require the exact opt-in DAS item layer before this activity can spend Moxie.
+  if (importedMoxie(activity?.item) && activity.id === 'dnd5eactivity001' && activity.type === 'utility') {
+    const actor = activity.actor ?? activity.item.actor;
+    const item = activity.item;
+    const flurry = item.flags?.['dnd5e-combat']?.flurry;
+    const mark = item.flags?.[MODULE_ID]?.oneTwoIntegration;
+    return feature(actor, 'moxie') === item && mark?.version === 1
+      && flurry?.activity === activity.id && flurry?.strikes === 2 && flurry?.weapons !== true
+      && !(contentApi?.inspect?.(actor) ?? []).some(row => Number(row.entry?.flurryStrikes) > 2);
+  }
   // Original Moxie already contains Brace Up. Preserve it and block duplicates.
   if (importedMoxie(activity?.item) && activity.id === 'dnd5eactivity000' && activity.type === 'heal')
     return feature(activity.actor ?? activity.item.actor, 'moxie') === activity.item;
@@ -86,6 +97,7 @@ export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
   const actor = activity.actor ?? activity.item.actor;
   if (!feature(actor, key)) return false;
   if (key === 'braceUp' && importedMoxie(feature(actor, 'moxie'))) return false;
+  if (key === 'oneTwoPunch' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'fisticuffs' && feature(actor, key) !== activity.item) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;
   // Core applies flurryStrikes enhancements to every external flurry. Refuse

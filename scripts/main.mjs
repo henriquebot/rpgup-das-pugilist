@@ -5,6 +5,7 @@ import { createRuntime } from './runtime.mjs';
 import { createAutomation } from './automation.mjs';
 import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
 import { migrateIronChin } from './iron-chin.mjs';
+import { configureOneTwoPunch } from './one-two-punch.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -73,6 +74,12 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    // Optional, reversible item-level DAS rule. Does not touch activities.
+    oneTwoPunch(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar One-Two Punch.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return configureOneTwoPunch(actor, { ...options, isGM: true });
+    },
     // Opt-in migration only. No actor data is changed on world load.
     ironChin(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode corrigir Iron Chin.');
