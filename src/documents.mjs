@@ -80,7 +80,45 @@ export function createDocuments() {
       configuration: { mode: "upgrade", allowReplacements: false, grants: [], choices: [{ count: 1, pool: ["skills:acr", "skills:ath"] }] } }
   ] });
   docs.push(subclass);
-  docs.push(feat("fisticuffs", "Fisticuffs — Punhos de Pugilist", 1, "Com armadura leve ou nenhuma, sem escudo e sem empunhar armas inelegíveis, seus golpes desarmados e armas simples corpo a corpo ou improvisadas usam o dado de Fisticuffs: 1d8 nos níveis 1–4 e 1d10 nos níveis 5–6. Pode realizar um golpe desarmado como ação bônus. Armas improvisadas possuem Sap. Usa Força para ataque e dano."));
+  // This standalone fallback retains two native Enchant activities, like the
+  // Plutonium source. The original actor item is never rewritten or replaced.
+  const fists = feat("fisticuffs", "Fisticuffs — Punhos de Pugilist", 1,
+    "Ataques desarmados e armas elegíveis usam o dado de Fisticuffs enquanto os requisitos de equipamento forem atendidos.");
+  fists.system.description.value = `<div class="ddb">
+    <h2>Fisticuffs</h2>
+    <p>Você desenvolveu um estilo de luta baseado em golpes desarmados, armas simples corpo a corpo e armas improvisadas.</p>
+    <h3>Ataque Desarmado Bônus</h3>
+    <p>Enquanto estiver sem armadura ou usando armadura leve, sem escudo e empunhando apenas armas elegíveis, poderá realizar um ataque desarmado como ação bônus.</p>
+    <h3>Dado de Fisticuffs</h3>
+    <p>Nas mesmas condições, pode substituir o dado normal de dano do ataque desarmado ou de uma arma de Pugilist por 1d8 nos níveis 1–4 ou 1d10 nos níveis 5–6. O modificador de Força é aplicado normalmente.</p>
+    <h3>Improvisação Aprimorada</h3>
+    <p>Armas improvisadas contam como tendo a maestria <strong>Sap</strong> para você, desde que as condições acima sejam atendidas.</p>
+    <p><em>As duas atividades abaixo aplicam encantamentos opcionais apenas a armas da categoria indicada. Não são ações de ataque; o ataque desarmado bônus é usado pela atividade da própria arma.</em></p>
+  </div>`;
+  for (const { effectId, activityId, label, category } of [
+    { effectId: EFFECT_IDS.fistEnchant, activityId: ACTIVITY_IDS.fistEnchant,
+      label: "Pugilist Weapon", category: "simpleM" },
+    { effectId: EFFECT_IDS.improvEnchant, activityId: ACTIVITY_IDS.improvEnchant,
+      label: "Improvised Pugilist Weapon", category: "improv" }
+  ]) {
+    const enchantment = effect(effectId, label, "fisticuffs", { changes: [
+      { _id: stable(`${effectId}-enabled`), key: "system.damage.base.custom.enabled",
+        type: "override", value: true, phase: "initial", priority: 20 },
+      { _id: stable(`${effectId}-formula`), key: "system.damage.base.custom.formula",
+        type: "override", value: "@scale.pugilist.fisticuffs + @mod", phase: "initial", priority: 20 }
+    ] });
+    enchantment.type = "enchantment";
+    enchantment.system.magical = false;
+    fists.effects.push(enchantment);
+    const enchantActivity = activity(activityId, label, "enchant", "special", {
+      effects: [{ _id: effectId }], enchant: { self: false },
+      restrictions: { allowMagical: true, type: "weapon", categories: [category], properties: [] }
+    });
+    enchantActivity.visibility = { identifier: "pugilist", level: { min: 1, max: 6 },
+      requireAttunement: false, requireIdentification: false, requireMagic: false };
+    fists.system.activities[activityId] = enchantActivity;
+  }
+  docs.push(fists);
   const chin = feat("ironChin", "Iron Chin — Queixo de Ferro", 1, "Sem escudo e com armadura leve ou nenhuma, pode usar CA base 12 + modificador de Constituição. Bônus de CA legítimos continuam aplicáveis; fórmulas incompatíveis não se acumulam.");
   chin.effects.push(effect(EFFECT_IDS.ironChin, "Iron Chin", "ironChin", { transfer: true, changes: [
     { _id: stable("chin-change"), key: `flags.${MODULE_ID}.ironChin`, value: "true", type: "custom", phase: "initial", priority: null }

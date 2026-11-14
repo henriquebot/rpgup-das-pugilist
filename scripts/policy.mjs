@@ -6,13 +6,22 @@ export const MIN_LEVEL = Object.freeze({ fisticuffs: 1, ironChin: 1, unarmed: 1,
   haymaker: 5, fueledFists: 6, meatShield: 6 });
 const SUBCLASS = new Set(['groundwork', 'compression', 'inescapable', 'stopAndDrop', 'muscleMass', 'meatShield']);
 export const itemsOf = actor => Array.from(actor?.items ?? []);
+// Restrict legacy support to the exact Pugilist 2024 import, never by translated names.
+const legacy = (item, page, hash) => item?.flags?.plutonium?.source === 'Pugilist2024'
+  && item.flags.plutonium.page === page && item.flags.plutonium.hash === hash;
+export const importedPugilistClass = item => item?.type === 'class' && item.system?.identifier === 'pugilist'
+  && legacy(item, 'classes.html', 'pugilist_pugilist2024');
+export const importedFisticuffs = item => item?.type === 'feat' && item.system?.identifier === 'fisticuffs'
+  && legacy(item, 'classFeature', 'fisticuffs_pugilist_pugilist2024_1_pugilist2024');
+const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
+  && legacy(item, 'items.html', 'unarmed%20strike%20(pugilist)_pugilist2024');
 export const ownedKey = item => {
   const key = item?.flags?.[MODULE_ID]?.key;
   return key && I[key] === item.system?.identifier ? key : null;
 };
 export function pugilistLevel(actor) {
   const classes = itemsOf(actor).filter(i => i.type === 'class' && i.system?.identifier === I.pugilist);
-  if (classes.length !== 1 || ownedKey(classes[0]) !== 'pugilist') return 0;
+  if (classes.length !== 1 || !(ownedKey(classes[0]) === 'pugilist' || importedPugilistClass(classes[0]))) return 0;
   const n = Number(classes[0].system.levels);
   return Number.isInteger(n) && n >= 1 && n <= 6 ? n : 0;
 }
@@ -20,6 +29,14 @@ export function feature(actor, key) {
   const level = pugilistLevel(actor);
   if (!level || level < (MIN_LEVEL[key] ?? 1)) return null;
   if (SUBCLASS.has(key) && !itemsOf(actor).some(i => i.type === 'subclass' && ownedKey(i) === 'squaredCircle')) return null;
+  if (key === 'fisticuffs') {
+    const originals = itemsOf(actor).filter(importedFisticuffs);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'fisticuffs');
+    // Two genuine imports are ambiguous. If the same feature is also present
+    // from RPGUp, keep the original active and do not touch either document.
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
+  }
   const found = itemsOf(actor).filter(i => i.system?.identifier === I[key]);
   return found.length === 1 && ownedKey(found[0]) === key ? found[0] : null;
 }
@@ -35,14 +52,19 @@ export function lightOrNoArmor(actor) {
 export function fisticuffsEligible(actor) {
   return Boolean(feature(actor, 'fisticuffs')) && lightOrNoArmor(actor) && !itemsOf(actor).some(i =>
     i.type === 'weapon' && i.system?.equipped && !['simpleM', 'improv'].includes(i.system.type?.value)
-    && i.system.identifier !== 'unarmed-strike');
+    && !['unarmed-strike', 'unarmed-strike-pugilist'].includes(i.system?.identifier));
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
 export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
+  // Preserve the legacy enchant activities; deny use only when Fisticuffs
+  // equipment conditions are not met. DAS owns the rest of the activity flow.
+  if (importedFisticuffs(activity?.item) && activity.type === 'enchant')
+    return fisticuffsEligible(activity.actor ?? activity.item.actor);
   const key = ownedKey(activity?.item);
   if (!key) return true;
   const actor = activity.actor ?? activity.item.actor;
   if (!feature(actor, key)) return false;
+  if (key === 'fisticuffs' && feature(actor, key) !== activity.item) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;
   // Core applies flurryStrikes enhancements to every external flurry. Refuse
   // our use before paying if that would grant more attacks than this feature.
@@ -67,9 +89,18 @@ export function applyFisticuffsDamage(config) {
   const activity = config?.subject;
   const actor = activity?.actor;
   const kind = weaponKind(activity);
-  if (!kind || !fisticuffsEligible(actor)) return;
+  if (!kind) return;
   const roll = config.rolls?.find(r => r.base === true);
   if (!roll?.parts?.length) return;
+  // 5etools's original Unarmed Strike stores the class-scale formula in the
+  // item itself. Never persist edits, but suppress that die when the class
+  // equipment restrictions are not satisfied.
+  if (!fisticuffsEligible(actor)) {
+    if (importedUnarmed(activity.item)
+      && /^@scale\.pugilist\.fisticuffs\s*\+\s*@mod$/.test(String(roll.parts[0]).trim()))
+      roll.parts[0] = '1 + @mod';
+    return;
+  }
   const die = fisticuffsDie(actor);
   const original = String(roll.parts[0]);
   if (kind === 'unarmed' && /^1\s*\+\s*@mod$/.test(original)) {
@@ -104,6 +135,13 @@ export function applyDigDeep(actor, change) {
 export function actorDiagnostics(actor) {
   const list = itemsOf(actor);
   const duplicates = Object.keys(I).filter(key => list.filter(i => i.system?.identifier === I[key]).length > 1);
-  return { level: pugilistLevel(actor), duplicates, schemaVersions: [...new Set(list.filter(ownedKey).map(i => i.flags[MODULE_ID].schemaVersion))],
+  const originals = list.filter(importedFisticuffs);
+  const addon = list.filter(i => ownedKey(i) === 'fisticuffs');
+  return { level: pugilistLevel(actor), duplicates, fisticuffs: {
+    source: originals.length === 1 ? '5etools/Plutonium' : addon.length === 1 ? 'RPGUp' : 'ausente',
+    originalCount: originals.length, addonCount: addon.length,
+    active: Boolean(feature(actor, 'fisticuffs')),
+    duplicateImport: originals.length > 1 || addon.length > 1
+  }, schemaVersions: [...new Set(list.filter(ownedKey).map(i => i.flags[MODULE_ID].schemaVersion))],
     automation: { swagger: 'hook', compression: 'hook', stopAndDrop: 'hook', meatShield: 'hook', haymaker: 'hook+DAS' } };
 }
