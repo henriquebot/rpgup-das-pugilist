@@ -8,6 +8,7 @@ import { migrateIronChin } from './iron-chin.mjs';
 import { configureOneTwoPunch } from './one-two-punch.mjs';
 import { configureStickAndMove, createStickAndMoveIntegration } from './stick-and-move.mjs';
 import { configureBloodied, originalBloodiedAllowed, markBloodiedDamage } from './bloodied.mjs';
+import { originalSwaggerAllowed } from './swagger.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -56,7 +57,7 @@ export function install(env) {
   on('dnd5e.preUseActivity', guarded((activity, usageConfig) => {
     const core = env.game.modules.get('dnd5e-combat')?.api?.content;
     const content = { inspect: actor => core?.inspect?.(actor), bloodiedCheck: originalBloodiedAllowed };
-    if (!activityAllowed(activity, content, usageConfig)) {
+    if (originalSwaggerAllowed(activity, usageConfig) === false || !activityAllowed(activity, content, usageConfig)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
       return false;
     }

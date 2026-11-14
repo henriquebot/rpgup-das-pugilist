@@ -194,9 +194,17 @@ export function createDocuments() {
   docs.push(feat("bloodied", "Bloodied But Unbowed — Ferido, Não Vencido", 2, "Após sofrer dano, pode usar sua reação para recuperar toda a Moxie gasta. Se estiver Bloodied no momento da reação, também recebe PV temporários iguais a quatro vezes seu nível de Pugilist; estes expiram ao terminar um descanso curto. Uma utilização por descanso curto ou longo. Consulte o README: partes sem extensão pública segura permanecem sem automação.", { uses: uses("1", "sr"), activities: {
     [ACTIVITY_IDS.bloodied]: activity(ACTIVITY_IDS.bloodied, "Bloodied But Unbowed", "utility", "reaction", { consumption: consumption([cost("")]) })
   } }));
-  docs.push(feat("swagger", "Swagger Streak — Marra", 2, "Após falhar em um teste confirmado de Força, Destreza, Constituição ou Carisma, pode gastar 1 Moxie e somar o dado de Fisticuffs. Se ainda falhar, o ponto é devolvido e não pode usar esta habilidade até terminar um descanso curto ou longo. Sem CD conhecida ou falha confirmada, nenhuma falha é presumida.", { uses: uses("1", "sr"), activities: {
+  const swagger = feat("swagger", "Swagger Streak — Marra", 2, "Após falhar em um teste confirmado de Força, Destreza, Constituição ou Carisma, pode gastar 1 Moxie e somar o dado de Fisticuffs. Se ainda falhar, o ponto é devolvido e não pode usar esta habilidade até terminar um descanso curto ou longo. Sem CD conhecida ou falha confirmada, nenhuma falha é presumida.", { uses: uses("1", "sr"), activities: {
     [ACTIVITY_IDS.swagger]: activity(ACTIVITY_IDS.swagger, "Swagger Streak", "utility", "special", { consumption: consumption([cost()]), roll: { formula: "@scale.pugilist.fisticuffs", name: "Swagger Streak", prompt: false, visible: false } })
-  } }));
+  } });
+  swagger.system.description.value = `<div class="ddb">
+    <h2>Swagger Streak — Marra</h2>
+    <p>Quando você falhar num teste de habilidade de <strong>Força, Destreza, Constituição ou Carisma</strong> com CD conhecida, pode gastar <strong>1 Moxie</strong> para adicionar seu dado de Fisticuffs ao resultado.</p>
+    <p>Se o resultado ajustado ainda for uma falha, recupera o Moxie gasto e não pode usar Swagger Streak novamente até terminar um descanso curto ou longo.</p>
+    <p>Se passar no teste graças ao dado, mantém o gasto de Moxie e pode usar esta característica de novo enquanto tiver recursos.</p>
+    <p><em>O ajuste é informado numa mensagem complementar; o resultado original do d20 não é reescrito.</em></p>
+  </div>`;
+  docs.push(swagger);
   docs.push(feat("heavyHitter", "Heavy Hitter — Peso Pesado", 3, "Após acertar um golpe desarmado, pode aplicar o dano e escolher Agarrar ou Empurrar contra o mesmo alvo. As salvaguardas e efeitos são resolvidos pelo DAS; não é um novo ataque."));
   docs.push(feat("groundwork", "Groundwork — Trabalho de Solo", 3, "Squared Circle: Compression Lock, Inescapable e Stop and Drop são descritos em suas características próprias. Aplicam-se apenas às relações de agarrão mantidas por este Pugilist."));
   docs.push(feat("compression", "Compression Lock — Chave de Compressão", 3, "No início do seu turno, se mantiver uma ou mais criaturas agarradas, o módulo oferece causar dano de concussão a cada uma, sem gastar ação. Cada criatura recebe uma rolagem própria do dado de Fisticuffs + modificador de Força.", { activities: {

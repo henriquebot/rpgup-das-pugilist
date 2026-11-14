@@ -1,5 +1,6 @@
 import { MODULE_ID, ACTIVITY_IDS as A } from '../src/ids.mjs';
-import { feature, fisticuffsEligible, ownedKey, weaponKind } from './policy.mjs';
+import { feature, fisticuffsEligible, ownedKey, weaponKind, importedSwagger } from './policy.mjs';
+import { resolveOriginalSwagger } from './swagger.mjs';
 
 const DAS_ID = 'dnd5e-combat';
 export const QUERY = `${MODULE_ID}.choice`;
@@ -174,9 +175,31 @@ export function createAutomation(env) {
     seenRolls.add(roll);
     return queue(`swagger:${actor.uuid}`, async () => {
       if (left(swaggerItem) < 1 || left(moxie) < 1) return;
-      const answer = await choose(actor, { title: `${swaggerItem.name} — ${actor.name}`, prompt: `Falha confirmada (${total} contra CD ${dc}). Gastar 1 Moxie e somar o dado de Fisticuffs?`,
+      const answer = await choose(actor, { title: `${swaggerItem.name} — ${actor.name}`, prompt: 'Falha confirmada. Gastar 1 Moxie e somar o dado de Fisticuffs?',
         options: [{ id: 'no', label: 'Não usar' }, { id: 'yes', label: 'Usar Swagger Streak' }] });
       if (answer !== 'yes' || left(swaggerItem) < 1 || left(moxie) < 1) return;
+      if (importedSwagger(swaggerItem)) {
+        const native = await resolveOriginalSwagger(actor, { total, dc });
+        if (native.status === 'success' || native.status === 'failed-and-locked') {
+          // The original check card is already rolled: publish a separate,
+          // private adjustment. Never alter an evaluated D20Roll retroactively.
+          const listeners = values(env.game.users).filter(u => u.isGM || actor.testUserPermission?.(u, 'OWNER')).map(u => u.id);
+          const status = native.success ? 'sucesso após Swagger Streak' : 'falha; Moxie devolvido e Swagger Streak esgotado';
+          await env.ChatMessage.implementation.create({
+            speaker: env.ChatMessage.implementation.getSpeaker({ actor }),
+            whisper: listeners,
+            content: `<p><strong>Swagger Streak</strong>: ${total} + ${native.bonus} = ${native.adjusted} (${status}).</p>`,
+            flags: { [MODULE_ID]: { swagger: { total, bonus: native.bonus, adjusted: native.adjusted,
+              success: native.success, status: native.status } } }
+          });
+        } else if (native.status === 'refund-pending') {
+          env.ui?.notifications?.warn?.('Swagger Streak: não foi possível concluir o reembolso de Moxie. Confira a ficha.');
+          report(new Error('Swagger Streak: End Streak não concluiu o reembolso.'));
+        } else if (!['roll-cancelled', 'payment-cancelled', 'not-confirmed-failure'].includes(native.status)) {
+          report(new Error(`Swagger Streak importado: ${native.status}`));
+        }
+        return;
+      }
       const activity = activityOf(swaggerItem, A.swagger);
       const result = await activity?.use?.({ [DAS_ID]: { confirmed: true }, [MODULE_ID]: { automation: 'swagger' }, subsequentActions: false }, { configure: false });
       if (!result) return;
