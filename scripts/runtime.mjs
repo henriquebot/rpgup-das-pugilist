@@ -1,5 +1,6 @@
 import { MODULE_ID, ACTIVITY_IDS as A } from '../src/ids.mjs';
 import { feature, pugilistLevel, ownedKey } from './policy.mjs';
+import { sourceHealingActivity, isBraceUpHealing } from './brace-up.mjs';
 
 /** Only the process executing activity.use() reaches postUseActivity. Broadcast
  * hooks never spend resources here. A per-actor queue serializes our writes. */
@@ -63,11 +64,9 @@ export function createRuntime(env) {
     const current = Number(hp(actor)?.temp) || 0;
     const next = Number(updates['system.attributes.hp.temp']);
     if (!Number.isFinite(next)) return;
-    // `system.activity` on a message is a SourceReferenceField descriptor, not
-    // an Activity document. Use the system's public resolver (dnd5e 6.0.6
-    // documents/chat-message.mjs:getAssociatedActivity).
-    const sourceActivity = options?.origin?.getAssociatedActivity?.();
-    if (next > current && ownedKey(sourceActivity?.item) === 'braceUp' && sourceActivity.actor?.uuid === actor.uuid) {
+    // Healing rolls reference the originating usage card in dnd5e 6.0.6.
+    const sourceActivity = sourceHealingActivity(options);
+    if (next > current && isBraceUpHealing(sourceActivity, actor)) {
       updates[`flags.${MODULE_ID}.tempHp`] = { source: 'braceUp', remaining: next, expiresAt: Number(env.game.time.worldTime) + 600, shortRest: false };
     } else if (next < current && state(actor)) {
       updates[`flags.${MODULE_ID}.tempHp`] = next > 0 ? { ...state(actor), remaining: next } : null;

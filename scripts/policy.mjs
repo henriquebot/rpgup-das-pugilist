@@ -74,6 +74,9 @@ export function fisticuffsEligible(actor) {
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
 export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
+  // Original Moxie already contains Brace Up. Preserve it and block duplicates.
+  if (importedMoxie(activity?.item) && activity.id === 'dnd5eactivity000' && activity.type === 'heal')
+    return feature(activity.actor ?? activity.item.actor, 'moxie') === activity.item;
   // Preserve the legacy enchant activities; deny use only when Fisticuffs
   // equipment conditions are not met. DAS owns the rest of the activity flow.
   if (importedFisticuffs(activity?.item) && activity.type === 'enchant')
@@ -82,6 +85,7 @@ export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
   if (!key) return true;
   const actor = activity.actor ?? activity.item.actor;
   if (!feature(actor, key)) return false;
+  if (key === 'braceUp' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'fisticuffs' && feature(actor, key) !== activity.item) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;
   // Core applies flurryStrikes enhancements to every external flurry. Refuse
