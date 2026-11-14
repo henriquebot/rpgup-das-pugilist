@@ -1,18 +1,21 @@
-# RPGUp DAS Pugilist 0.2.0
+# RPGUp DAS Pugilist 0.2.1
 
-Pré-lançamento para Foundry 14.370, dnd5e 6.0.6 e DAS Core 0.282.1.
+Pré-lançamento de validação para Foundry 14.370, dnd5e 6.0.6 e DAS Core 0.282.1.
 
-## Novidades
+## Atualizações desde a v0.2.0
 
-- Swagger Streak assistido para testes elegíveis com CD conhecida, incluindo reembolso e bloqueio em falha persistente.
-- Compression Lock opcional no início do turno, restrito aos agarrões pareados do próprio Pugilist.
-- Heavy Hitter e Stop and Drop condicionados ao acerto, alvo único e maestria registrada na mensagem.
-- Meat Shield com filtro prévio de vínculo, alcance, reação e Moxie, seguido da repetição gratuita do ataque contra o alvo escolhido.
-- Haymaker oferecido antes de usos normais de ataques elegíveis; maximização e reembolso continuam pertencendo ao DAS.
-- Novos testes de cancelamento, falta de recursos, alvos inválidos, repetição e eleição do executor.
+- Integração revisada do Pugilist com DAS, preservando atividades e dados de personagens já existentes.
+- Groundwork: tratamento da atividade e referências de efeitos na integração.
+- Muscle Mass: seleção nativa de proficiência ou Expertise em Acrobacia/Atletismo, com migração reversível para casos reconhecidos.
+- Dig Deep: ativação normal e recuperação de uso mediante Exaustão, sem conceder efeitos duplicados e com migração condicionada à aprovação do GM.
+- Unarmed Strike (Pugilist): mantém os ataques originais, evita duplicatas e encaminha Agarrar/Empurrar para as atividades nativas do DAS.
+- Nível 4 (ASI/talento): auditoria somente de leitura de personagens importados; não concede talentos ou atributos automaticamente, prevenindo duplicação quando há talento previamente aplicado.
+- Atualizada a verificação de duplicatas de Fisticuffs: itens sem proveniência válida não anulam a origem legítima.
 
-O compêndio LevelDB contém 22 documentos e não migra personagens existentes. Fichas e módulos visuais permanecem opcionais e são reconhecidos somente por contratos públicos/IDs estáveis.
+## Validação e limitações
 
-## Limites
+O CI verificou os testes do add-on (216/216) e a suíte original do DAS (1.814/1.814), além do empacotamento. Esta versão ainda precisa de validação prática no Foundry v14 com o personagem Kyros. Nenhuma migração de ficha é executada silenciosamente; quando aplicável, ela depende de condições e confirmação do GM. Atualizar o compêndio não substitui automaticamente itens já presentes em personagens.
 
-Nenhum teste foi executado dentro do Foundry por instrução do usuário. Swagger sem CD e chamadas diretas a `rollAttack` usam funcionamento manual seguro. Meat Shield não pode garantir atomicidade se a conexão cair depois do pagamento e antes da nova rolagem. Consulte `README.md` e `docs/VALIDATION.md` antes de usar em campanha.
+Os limites da v0.2.0 permanecem: testes Node não reproduzem todo o fluxo de canvas, sockets e múltiplos clientes; Swagger sem CD conhecida e chamadas diretas a `rollAttack` podem exigir resolução manual; Meat Shield não garante atomicidade em caso de desconexão após o consumo do recurso.
+
+Consulte `README.md` e `docs/VALIDATION.md` antes de utilizar em campanha.
