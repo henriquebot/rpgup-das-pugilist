@@ -72,25 +72,41 @@ export function createHeavyHitter(env, { choose }) {
     if (!gap || !Number.isFinite(gap.cells) || gap.cells > 1) return;
     seen.add(key);
     if (seen.size > 500) seen.delete(seen.values().next().value);
+    // Stop and Drop allows BOTH choices only if this exact attack did not use
+    // mastery. Missing/unknown mastery metadata never counts as "no mastery".
+    const stopped = Boolean(feature(actor, 'stopAndDrop'))
+      && Object.hasOwn(attackMessage?.system ?? {}, 'mastery')
+      && !attackMessage.system.mastery;
+    const options = [{ id: 'no', label: 'Não aplicar' }, { id: 'yes', label: 'Agarrar ou Empurrar' }];
+    if (stopped) options.push(
+      { id: 'both-prone', label: 'Stop and Drop: Agarrar e Derrubar' },
+      { id: 'both-push', label: 'Stop and Drop: Agarrar e Empurrar 1,5 m' }
+    );
     const answer = await choose(actor, {
-      title: `${heavy.name} — ${actor.name}`,
-      prompt: `Ataque desarmado acertou ${target.name}. Aplicar também Agarrar ou Empurrar, sem novo ataque?`,
-      options: [{ id: 'no', label: 'Não aplicar' }, { id: 'yes', label: 'Agarrar ou Empurrar' }]
+      title: `${stopped ? 'Stop and Drop' : heavy.name} — ${actor.name}`,
+      prompt: `Ataque desarmado acertou ${target.name}. Escolha o efeito adicional sem novo ataque.`,
+      options
     });
-    if (answer !== 'yes') return;
+    if (!options.some(o => o.id === answer) || answer === 'no') return;
     // The attack may have caused movement or a KO while the prompt was open.
     if (source.parent !== target.parent || Number(target.actor.system?.attributes?.hp?.value) <= 0) return;
-    const card = await save.item.system.getCardData({ activity: save });
-    const data = { ...card, targets: [{ actor: target.actor.uuid, token: target.uuid,
-      name: target.name, img: target.texture?.src ?? null,
-      ac: target.actor.statuses?.has?.('coverTotal') ? null : target.actor.system?.attributes?.ac?.value ?? null }] };
-    await env.ChatMessage.implementation.create({
-      type: 'usage', speaker: env.ChatMessage.implementation.getSpeaker({ token: source }),
-      flavor: `Heavy Hitter — ${target.name}: escolha Agarrar, Derrubar ou Empurrar`,
-      system: data,
-      flags: { core: { canPopout: true }, [DAS]: { areaTick: { event: 'heavyHitter', source: source.uuid, token: target.uuid } },
-        [MODULE_ID]: { heavyHitter: { resolution: r.id, source: source.uuid, target: target.uuid } } }
-    });
+    const effects = answer === 'both-prone' ? ['dnd5eCombatGrapl', 'dnd5eCombatProne']
+      : answer === 'both-push' ? ['dnd5eCombatGrapl', 'dnd5eCombatPush0'] : [null];
+    for (const chosen of effects) {
+      const card = await save.item.system.getCardData({ activity: save });
+      const data = { ...card, targets: [{ actor: target.actor.uuid, token: target.uuid,
+        name: target.name, img: target.texture?.src ?? null,
+        ac: target.actor.statuses?.has?.('coverTotal') ? null : target.actor.system?.attributes?.ac?.value ?? null }] };
+      await env.ChatMessage.implementation.create({
+        type: 'usage', speaker: env.ChatMessage.implementation.getSpeaker({ token: source }),
+        flavor: `${chosen ? 'Stop and Drop' : 'Heavy Hitter'} — ${target.name}${chosen ? `: ${chosen === 'dnd5eCombatGrapl' ? 'Agarrar' : chosen === 'dnd5eCombatProne' ? 'Derrubar' : 'Empurrar'}` : ': escolha Agarrar, Derrubar ou Empurrar'}`,
+        system: data,
+        flags: { core: { canPopout: true }, [DAS]: {
+          areaTick: { event: 'heavyHitter', source: source.uuid, token: target.uuid },
+          ...(chosen ? { choice: chosen } : {})
+        }, [MODULE_ID]: { heavyHitter: { resolution: r.id, source: source.uuid, target: target.uuid } } }
+      });
+    }
   }
   return { resolution };
 }

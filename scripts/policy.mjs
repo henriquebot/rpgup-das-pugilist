@@ -21,6 +21,11 @@ export const importedSwagger = item => item?.type === 'feat' && item.system?.ide
   && legacy(item, 'classFeature', 'swagger%20streak_pugilist_pugilist2024_2_pugilist2024');
 export const importedHeavyHitter = item => item?.type === 'feat' && item.system?.identifier === 'heavy-hitter'
   && legacy(item, 'classFeature', 'heavy%20hitter_pugilist_pugilist2024_3_pugilist2024');
+export const importedSquaredCircle = item => item?.type === 'subclass' && item.system?.identifier === 'squared-circle'
+  && item.system?.classIdentifier === 'pugilist'
+  && legacy(item, 'classes.html', 'pugilist_pugilist2024,state:sub_squared%20circle_pugilist2024=b1');
+export const importedGroundwork = item => item?.type === 'feat' && item.system?.identifier === 'groundwork'
+  && legacy(item, 'subclassFeature', 'groundwork_pugilist_pugilist2024_squared%20circle_pugilist2024_3_pugilist2024');
 export const importedBloodied = item => item?.type === 'feat' && item.system?.identifier === 'bloodied-but-unbowed'
   && legacy(item, 'classFeature', 'bloodied%20but%20unbowed_pugilist_pugilist2024_2_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
@@ -38,7 +43,25 @@ export function pugilistLevel(actor) {
 export function feature(actor, key) {
   const level = pugilistLevel(actor);
   if (!level || level < (MIN_LEVEL[key] ?? 1)) return null;
-  if (SUBCLASS.has(key) && !itemsOf(actor).some(i => i.type === 'subclass' && ownedKey(i) === 'squaredCircle')) return null;
+  if (SUBCLASS.has(key)) {
+    const subclass = itemsOf(actor).filter(i => i.type === 'subclass' && i.system?.identifier === 'squared-circle');
+    if (subclass.length !== 1 || !(ownedKey(subclass[0]) === 'squaredCircle' || importedSquaredCircle(subclass[0]))) return null;
+  }
+  if (['groundwork', 'compression', 'inescapable', 'stopAndDrop'].includes(key)) {
+    const originals = itemsOf(actor).filter(importedGroundwork);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === key);
+    if (originals.length > 1 || addon.length > 1) return null;
+    const item = originals[0];
+    if (item) {
+      if (key === 'groundwork' || key === 'stopAndDrop') return item;
+      const mark = item.flags?.[MODULE_ID]?.groundworkIntegration;
+      const exists = id => Boolean(item.system?.activities?.get?.(id) ?? item.system?.activities?.[id]);
+      if (mark?.version === 1 && exists(A.compression) && exists(A.inescapable)
+        && item.flags?.['dnd5e-combat']?.inescapable?.activity === A.inescapable) return item;
+      return null;
+    }
+    return addon[0] ?? null;
+  }
   if (key === 'heavyHitter') {
     const originals = itemsOf(actor).filter(importedHeavyHitter);
     const addon = itemsOf(actor).filter(i => ownedKey(i) === 'heavyHitter');

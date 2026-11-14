@@ -114,3 +114,56 @@ test('no Heavy Hitter, level below 3, no GM authority and foreign actors fail cl
       assert.equal(f.questions.length,0);assert.equal(f.cards.length,0);
     }
 });
+
+function enableOriginalGroundwork(f) {
+  const subclass={type:'subclass',system:{identifier:'squared-circle',classIdentifier:'pugilist'},
+    flags:{plutonium:{page:'classes.html',source:'Pugilist2024',hash:'pugilist_pugilist2024,state:sub_squared%20circle_pugilist2024=b1'}}};
+  const groundwork={type:'feat',system:{identifier:'groundwork',activities:{}},flags:{plutonium:{
+    page:'subclassFeature',source:'Pugilist2024',hash:'groundwork_pugilist_pugilist2024_squared%20circle_pugilist2024_3_pugilist2024'}}};
+  f.actor.items.push(subclass,groundwork);
+  return {subclass,groundwork};
+}
+
+test('Stop and Drop: no mastery allows two independent native Grapple/Shove save cards',async()=>{
+  const f=fixture({answer:'both-prone'});
+  enableOriginalGroundwork(f);
+  f.env.game.messages.get('attackMsg').system={mastery:''};
+  await f.integration.resolution(f.result);
+  assert.equal(f.questions.length,1);
+  assert.deepEqual(f.questions[0].options.map(o=>o.id),['no','yes','both-prone','both-push']);
+  assert.equal(f.cards.length,2);
+  assert.deepEqual(f.cards.map(c=>c.flags[DAS].choice), ['dnd5eCombatGrapl','dnd5eCombatProne']);
+  assert.equal(f.getCardCalls(),2);
+  assert.equal(f.cards[0].system.targets[0].token,f.target.uuid);
+  assert.equal(f.cards[1].system.targets[0].token,f.target.uuid);
+  await f.integration.resolution(f.result);
+  assert.equal(f.cards.length,2);
+});
+
+test('Stop and Drop may combine Grapple with a push instead of prone',async()=>{
+  const f=fixture({answer:'both-push'});
+  enableOriginalGroundwork(f);
+  f.env.game.messages.get('attackMsg').system={mastery:null};
+  await f.integration.resolution(f.result);
+  assert.deepEqual(f.cards.map(c=>c.flags[DAS].choice),['dnd5eCombatGrapl','dnd5eCombatPush0']);
+});
+
+test('using mastery or missing mastery info never offers both or creates forced cards',async()=>{
+  for(const mastery of ['sap','topple',undefined]){
+    const f=fixture({answer:'both-prone'});
+    enableOriginalGroundwork(f);
+    if(mastery!==undefined)f.env.game.messages.get('attackMsg').system={mastery};
+    await f.integration.resolution(f.result);
+    assert.deepEqual(f.questions[0].options.map(o=>o.id),['no','yes']);
+    assert.equal(f.cards.length,0);
+  }
+});
+
+test('without original Squared Circle and Groundwork, Heavy Hitter still offers exactly one follow-up',async()=>{
+  const f=fixture({answer:'yes'});
+  f.env.game.messages.get('attackMsg').system={mastery:''};
+  await f.integration.resolution(f.result);
+  assert.equal(f.cards.length,1);
+  assert.equal(f.cards[0].flags[DAS].choice,undefined);
+  assert.deepEqual(f.questions[0].options.map(o=>o.id),['no','yes']);
+});

@@ -1,5 +1,5 @@
 import { MODULE_ID, ACTIVITY_IDS as A } from '../src/ids.mjs';
-import { feature, fisticuffsEligible, ownedKey, weaponKind, importedSwagger } from './policy.mjs';
+import { feature, fisticuffsEligible, ownedKey, weaponKind, importedSwagger, importedGroundwork } from './policy.mjs';
 import { resolveOriginalSwagger } from './swagger.mjs';
 
 const DAS_ID = 'dnd5e-combat';
@@ -269,6 +269,9 @@ export function createAutomation(env) {
     if (seenResolutions.has(key)) return;
     const activity = env.fromUuidSync?.(resolution.activity ?? '', { strict: false });
     const actor = activity?.actor;
+    // Original Groundwork follow-ups are handled by the Heavy Hitter route;
+    // never offer a duplicate prompt via the old RPGUp-only route.
+    if (importedGroundwork(feature(actor, 'groundwork'))) return;
     const targets = values(resolution.targets);
     const hits = targets.filter(t => t.hit === true);
     if (!actor || targets.length !== 1 || hits.length !== 1 || ownedKey(activity.item) !== 'unarmed' || !feature(actor, 'heavyHitter')) return;

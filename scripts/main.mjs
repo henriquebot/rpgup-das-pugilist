@@ -10,6 +10,7 @@ import { configureStickAndMove, createStickAndMoveIntegration } from './stick-an
 import { configureBloodied, originalBloodiedAllowed, markBloodiedDamage } from './bloodied.mjs';
 import { originalSwaggerAllowed } from './swagger.mjs';
 import { createHeavyHitter } from './heavy-hitter.mjs';
+import { configureGroundwork, originalGroundworkActivityAllowed } from './groundwork.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -59,7 +60,7 @@ export function install(env) {
   on('dnd5e.preUseActivity', guarded((activity, usageConfig) => {
     const core = env.game.modules.get('dnd5e-combat')?.api?.content;
     const content = { inspect: actor => core?.inspect?.(actor), bloodiedCheck: originalBloodiedAllowed };
-    if (originalSwaggerAllowed(activity, usageConfig) === false || !activityAllowed(activity, content, usageConfig)) {
+    if (originalGroundworkActivityAllowed(activity) === false || originalSwaggerAllowed(activity, usageConfig) === false || !activityAllowed(activity, content, usageConfig)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
       return false;
     }
@@ -88,6 +89,11 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    groundwork(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar Groundwork.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return configureGroundwork(actor, { ...options, isGM: true });
+    },
     bloodied(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode corrigir Bloodied But Unbowed.');
       if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');

@@ -214,7 +214,19 @@ export function createDocuments() {
     <p>A opção é oferecida após um acerto confirmado. A salvaguarda e os efeitos usam a ação de ataque desarmado já existente no DAS, sem outro ataque e sem gastar uma segunda ação.</p>
   </div>`;
   docs.push(heavy);
-  docs.push(feat("groundwork", "Groundwork — Trabalho de Solo", 3, "Squared Circle: Compression Lock, Inescapable e Stop and Drop são descritos em suas características próprias. Aplicam-se apenas às relações de agarrão mantidas por este Pugilist."));
+  const ground = feat("groundwork", "Groundwork — Trabalho de Solo", 3,
+    "Squared Circle: Compression Lock, Inescapable e Stop and Drop compartilham esta característica.");
+  ground.system.description.value = `<div class="ddb">
+    <h2>Groundwork — Trabalho de Solo</h2>
+    <h3>Compression Lock</h3>
+    <p>No começo do seu turno, você pode causar, sem ação, dano de concussão igual a <strong>um dado de Fisticuffs + seu modificador de Força</strong> a cada criatura que você mantém agarrada.</p>
+    <h3>Inescapable</h3>
+    <p>Quando uma criatura realizar um teste de habilidade ou salvaguarda contra a CD do seu Agarrar ou Empurrar, poderá gastar <strong>1 Moxie</strong> para impor desvantagem à rolagem.</p>
+    <h3>Stop and Drop</h3>
+    <p>Ao acertar um ataque desarmado sem utilizar uma propriedade de maestria nesse ataque, você pode aplicar as opções <strong>Agarrar e Empurrar</strong> no mesmo alvo. A opção Empurrar permite derrubar ou afastar a criatura.</p>
+    <p><em>O item original do 5etools é preservado. O módulo adiciona duas atividades somente após configuração autorizada pelo Mestre; as salvaguardas e os efeitos são resolvidos pelo DAS.</em></p>
+  </div>`;
+  docs.push(ground);
   docs.push(feat("compression", "Compression Lock — Chave de Compressão", 3, "No início do seu turno, se mantiver uma ou mais criaturas agarradas, o módulo oferece causar dano de concussão a cada uma, sem gastar ação. Cada criatura recebe uma rolagem própria do dado de Fisticuffs + modificador de Força.", { activities: {
     [ACTIVITY_IDS.compression]: activity(ACTIVITY_IDS.compression, "Compression Lock", "damage", "special", {
       damage: { critical: { allow: false, bonus: "" }, parts: [damagePart("@scale.pugilist.fisticuffs + @abilities.str.mod")] },
