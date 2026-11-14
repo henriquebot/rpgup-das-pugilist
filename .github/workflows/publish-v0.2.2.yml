@@ -1,0 +1,31 @@
+name: Publish v0.2.2 (one time)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v0.2.2.yml']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: git clone --depth 1 --branch v0.282.1 https://github.com/Darshyne/dnd5e-combat.git .research/dnd5e-combat
+      - run: git clone --depth 1 --branch v0.15.0 https://github.com/Darshyne/darsh-animations.git .research/darsh-animations
+      - run: git clone --depth 1 --branch release-6.0.6 https://github.com/foundryvtt/dnd5e.git .research/dnd5e
+      - run: npm run check
+      - run: npm ci --ignore-scripts
+        working-directory: .research/dnd5e-combat
+      - run: npm run test:upstream
+      - name: Verify version and publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node -e "if (JSON.parse(require('fs').readFileSync('module.json')).version !== '0.2.2') process.exit(1)"
+          if gh release view v0.2.2 >/dev/null 2>&1; then echo 'Release already exists'; exit 1; fi
+          gh release create v0.2.2 dist/module.json dist/rpgup-das-pugilist.zip dist/SHA256SUMS --target "$GITHUB_SHA" --prerelease --title "RPGUp DAS Pugilist v0.2.2" --notes-file docs/RELEASE.md
