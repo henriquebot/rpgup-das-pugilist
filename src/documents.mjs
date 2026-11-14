@@ -250,6 +250,13 @@ export function createDocuments() {
     [ACTIVITY_IDS.digDeep]: activity(ACTIVITY_IDS.digDeep, "Dig Deep", "utility", "bonus", { consumption: consumption([cost("")]), effects: [{ _id: EFFECT_IDS.digDeep }], duration: { units: "minute", value: "10", concentration: false, override: false } }),
     [ACTIVITY_IDS.digRecharge]: activity(ACTIVITY_IDS.digRecharge, "Receber 1 Exhaustion e recuperar Dig Deep", "utility", "special", { consumption: consumption([{ type: "attribute", target: "attributes.exhaustion", value: "-1", scaling: {} }, cost("", "-1")]) })
   } });
+  dig.system.description.value = `<div class="ddb">
+    <h2>Dig Deep — Reservas Profundas</h2>
+    <p>Como <strong>ação bônus</strong>, você recebe por <strong>10 minutos</strong> resistência a dano de concussão, perfurante e cortante.</p>
+    <p>Durante a duração, você ignora os efeitos mecânicos de Exaustão de níveis 1 a 5, sem remover ou reduzir seus níveis reais de Exaustão. A partir do sexto nível, a proteção não se aplica.</p>
+    <p>Você dispõe de <strong>um uso por descanso longo</strong>. Se o uso estiver gasto, poderá recuperá-lo voluntariamente ganhando <strong>um nível de Exaustão, sem gastar ação</strong>.</p>
+    <p><em>A atividade de recuperação não ativa Dig Deep novamente. A migração segura da característica importada pelo 5etools exige configuração do Mestre; a descrição original não é alterada.</em></p>
+  </div>`;
   dig.effects.push(effect(EFFECT_IDS.digDeep, "Dig Deep", "digDeep", {
     duration: { value: 600, units: "seconds", expiry: "turnStart" },
     changes: [

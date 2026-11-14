@@ -12,6 +12,7 @@ import { originalSwaggerAllowed } from './swagger.mjs';
 import { createHeavyHitter } from './heavy-hitter.mjs';
 import { configureGroundwork, originalGroundworkActivityAllowed } from './groundwork.mjs';
 import { configureMuscleMass } from './muscle-mass.mjs';
+import { configureDigDeep, originalDigDeepActivityAllowed } from './dig-deep.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -60,7 +61,8 @@ export function install(env) {
   on('dnd5e.postUseActivity', asyncGuarded(stickMove.postUse));
   on('dnd5e.preUseActivity', guarded((activity, usageConfig) => {
     const core = env.game.modules.get('dnd5e-combat')?.api?.content;
-    const content = { inspect: actor => core?.inspect?.(actor), bloodiedCheck: originalBloodiedAllowed };
+    const content = { inspect: actor => core?.inspect?.(actor), bloodiedCheck: originalBloodiedAllowed,
+      digDeepCheck: originalDigDeepActivityAllowed };
     if (originalGroundworkActivityAllowed(activity) === false || originalSwaggerAllowed(activity, usageConfig) === false || !activityAllowed(activity, content, usageConfig)) {
       env.ui?.notifications?.warn('Pugilist: pré-requisito não atendido ou atividade sem automação segura nesta versão. Consulte o README.');
       return false;
@@ -90,6 +92,11 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    digDeep(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode corrigir Dig Deep.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return configureDigDeep(actor, { ...options, isGM: true });
+    },
     muscleMass(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar Muscle Mass.');
       if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');

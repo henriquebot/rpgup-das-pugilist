@@ -28,6 +28,8 @@ export const importedGroundwork = item => item?.type === 'feat' && item.system?.
   && legacy(item, 'subclassFeature', 'groundwork_pugilist_pugilist2024_squared%20circle_pugilist2024_3_pugilist2024');
 export const importedMuscleMass = item => item?.type === 'feat' && item.system?.identifier === 'muscle-mass'
   && legacy(item, 'subclassFeature', 'muscle%20mass_pugilist_pugilist2024_squared%20circle_pugilist2024_3_pugilist2024');
+export const importedDigDeep = item => item?.type === 'feat' && item.system?.identifier === 'dig-deep'
+  && legacy(item, 'classFeature', 'dig%20deep_pugilist_pugilist2024_4_pugilist2024');
 export const importedBloodied = item => item?.type === 'feat' && item.system?.identifier === 'bloodied-but-unbowed'
   && legacy(item, 'classFeature', 'bloodied%20but%20unbowed_pugilist_pugilist2024_2_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
@@ -63,6 +65,12 @@ export function feature(actor, key) {
       return null;
     }
     return addon[0] ?? null;
+  }
+  if (key === 'digDeep') {
+    const originals = itemsOf(actor).filter(importedDigDeep);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'digDeep');
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
   }
   if (key === 'muscleMass') {
     const originals = itemsOf(actor).filter(importedMuscleMass);
@@ -129,6 +137,10 @@ export function fisticuffsEligible(actor) {
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
 export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
+  // The original Dig Deep has two imported activities, which must be migrated
+  // before use: the recharge must not grant the effect or spend a bonus action.
+  if (importedDigDeep(activity?.item) && ['dnd5eactivity000', 'dnd5eactivity001'].includes(activity.id))
+    return contentApi?.digDeepCheck?.(activity) === true;
   // The main hook passes the pure opt-in Bloodied eligibility check through
   // this adapter. In its absence, the original reaction fails closed.
   if (importedBloodied(activity?.item) && ['dnd5eactivity000', 'dnd5eactivity001'].includes(activity.id))
@@ -170,6 +182,7 @@ export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
   if (key === 'braceUp' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'oneTwoPunch' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'bloodied' && importedBloodied(feature(actor, 'bloodied'))) return false;
+  if (key === 'digDeep' && importedDigDeep(feature(actor, 'digDeep'))) return false;
   if (key === 'stickAndMove' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'fisticuffs' && feature(actor, key) !== activity.item) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;
