@@ -15,6 +15,8 @@ export const importedFisticuffs = item => item?.type === 'feat' && item.system?.
   && legacy(item, 'classFeature', 'fisticuffs_pugilist_pugilist2024_1_pugilist2024');
 export const importedIronChin = item => item?.type === 'feat' && item.system?.identifier === 'iron-chin'
   && legacy(item, 'classFeature', 'iron%20chin_pugilist_pugilist2024_1_pugilist2024');
+export const importedMoxie = item => item?.type === 'feat' && item.system?.identifier === 'moxie'
+  && legacy(item, 'classFeature', 'moxie_pugilist_pugilist2024_2_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
   && legacy(item, 'items.html', 'unarmed%20strike%20(pugilist)_pugilist2024');
 export const ownedKey = item => {
@@ -31,6 +33,14 @@ export function feature(actor, key) {
   const level = pugilistLevel(actor);
   if (!level || level < (MIN_LEVEL[key] ?? 1)) return null;
   if (SUBCLASS.has(key) && !itemsOf(actor).some(i => i.type === 'subclass' && ownedKey(i) === 'squaredCircle')) return null;
+  if (key === 'moxie') {
+    const originals = itemsOf(actor).filter(importedMoxie);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'moxie');
+    // The original contains Brace Up, One-Two Punch and Stick and Move as
+    // activities. Prefer that resource without adding a competing counter.
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
+  }
   if (key === 'ironChin') {
     const originals = itemsOf(actor).filter(importedIronChin);
     const addon = itemsOf(actor).filter(i => ownedKey(i) === 'ironChin');
@@ -140,6 +150,25 @@ export function applyDigDeep(actor, change) {
   if (level > 0 && level < 6) actor.system?.traits?.ci?.value?.add('exhaustion');
 }
 
+export function moxieDiagnostics(actor) {
+  const lvl = pugilistLevel(actor);
+  const expected = lvl < 2 ? 0 : lvl < 4 ? 2 : lvl < 6 ? 3 : 4;
+  const originals = itemsOf(actor).filter(importedMoxie);
+  const addon = itemsOf(actor).filter(i => ownedKey(i) === 'moxie');
+  const chosen = feature(actor, 'moxie');
+  const rawMax = chosen?.system?.uses?.max ?? null;
+  const spent = chosen ? Number(chosen.system?.uses?.spent ?? 0) : null;
+  const activities = Array.from(chosen?.system?.activities?.values?.() ?? Object.values(chosen?.system?.activities ?? {}));
+  return { source: chosen === originals[0] ? '5etools/Plutonium'
+      : chosen === addon[0] ? 'RPGUp' : 'ausente',
+    originalCount: originals.length, addonCount: addon.length, expectedMax: expected,
+    rawMax, spent, expectedAvailable: Number.isFinite(spent) ? expected - spent : null,
+    requiresReview: Boolean(chosen && (spent < 0 || spent > expected)) || originals.length > 1 || addon.length > 1,
+    activities: activities.map(a => ({ id: a.id ?? a._id, name: a.name, type: a.type,
+      costs: Array.from(a.consumption?.targets ?? []).map(t => ({ type: t.type, target: t.target ?? '', value: t.value })) }))
+  };
+}
+
 export function actorDiagnostics(actor) {
   const list = itemsOf(actor);
   const duplicates = Object.keys(I).filter(key => list.filter(i => i.system?.identifier === I[key]).length > 1);
@@ -155,6 +184,6 @@ export function actorDiagnostics(actor) {
   }, ironChin: {
     source: legacyChin.length === 1 ? '5etools/Plutonium' : addonChin.length === 1 ? 'RPGUp' : 'ausente',
     originalCount: legacyChin.length, addonCount: addonChin.length, active: Boolean(feature(actor, 'ironChin'))
-  }, schemaVersions: [...new Set(list.filter(ownedKey).map(i => i.flags[MODULE_ID].schemaVersion))],
+  }, moxie: moxieDiagnostics(actor), schemaVersions: [...new Set(list.filter(ownedKey).map(i => i.flags[MODULE_ID].schemaVersion))],
     automation: { swagger: 'hook', compression: 'hook', stopAndDrop: 'hook', meatShield: 'hook', haymaker: 'hook+DAS' } };
 }

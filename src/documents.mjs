@@ -165,7 +165,20 @@ export function createDocuments() {
     identifier: "pugilist", level: { min: 1, max: 6 }, requireAttunement: false, requireIdentification: false, requireMagic: false
   };
   docs.push(strike);
-  docs.push(feat("moxie", "Moxie", 2, "Reserva de Moxie: 2 pontos nos níveis 2–3, 3 nos níveis 4–5 e 4 no nível 6. Recupera todos os pontos após descanso curto ou longo. As atividades consomem esta reserva por identificador estável.", { uses: uses("@scale.pugilist.moxie", "sr") }));
+  const moxie = feat("moxie", "Moxie", 2, "Reserva de Moxie e suas três técnicas: Brace Up, One-Two Punch e Stick and Move.", { uses: uses("@scale.pugilist.moxie", "sr") });
+  moxie.system.description.value = `<div class="ddb">
+    <h2>Moxie</h2>
+    <p>Sua confiança e sua experiência em combate permitem realizar técnicas especiais alimentadas por <strong>Pontos de Moxie</strong>.</p>
+    <table><thead><tr><th>Nível de Pugilist</th><th>Máximo de Moxie</th></tr></thead><tbody>
+      <tr><td>2–3</td><td>2</td></tr><tr><td>4–5</td><td>3</td></tr><tr><td>6</td><td>4</td></tr>
+    </tbody></table>
+    <p>Você recupera todos os pontos gastos ao terminar um <strong>descanso curto ou longo</strong>.</p>
+    <h3>Brace Up</h3><p>Como ação bônus e por 1 Moxie, receba PV temporários iguais a um dado de Fisticuffs + seu nível de Pugilist + seu modificador de Constituição, por no máximo 10 minutos.</p>
+    <h3>One-Two Punch</h3><p>Gaste 1 Moxie para realizar dois ataques desarmados como ação bônus.</p>
+    <h3>Stick and Move</h3><p>Gaste 1 Moxie para realizar um ataque desarmado e uma ação Disparada ou Desengajar como ação bônus.</p>
+    <p><em>Esta versão do compêndio usa características separadas para as três técnicas; elas não são duplicadas dentro desta reserva. Em personagens importados do 5etools, o add-on preserva as três atividades originais existentes no item Moxie.</em></p>
+  </div>`;
+  docs.push(moxie);
   docs.push(feat("braceUp", "Brace Up — Firmar o Corpo", 2, "Como ação bônus, gaste 1 Moxie e receba PV temporários iguais ao dado de Fisticuffs + nível de Pugilist + modificador de Constituição, por até 10 minutos. PV temporários não se somam.", { activities: {
     [ACTIVITY_IDS.braceUp]: activity(ACTIVITY_IDS.braceUp, "Brace Up", "heal", "bonus", {
       consumption: consumption([cost()]), duration: { units: "minute", value: "10", concentration: false, override: false },
