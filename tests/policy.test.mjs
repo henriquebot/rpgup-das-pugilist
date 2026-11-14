@@ -44,14 +44,21 @@ test('unknown, out-of-scope and duplicate classes never activate complementary m
   assert.equal(pugilistLevel(actor), 0);
 });
 
-test('subclass features require Squared Circle and duplicates never get applied twice', () => {
+test('subclass gating and duplicate identities preserve the valid Fisticuffs source', () => {
   const actor = actorAt(6);
   actor.items = actor.items.filter(i => ownedKey(i) !== 'squaredCircle');
   assert.equal(feature(actor, 'meatShield'), null);
   assert.ok(feature(actor, 'fueledFists'));
-  actor.items.push({ system: { identifier: item(actor, 'fisticuffs').system.identifier } });
-  assert.equal(feature(actor, 'fisticuffs'), null);
+  const original = item(actor, 'fisticuffs');
+  // An unrelated untagged item with the same identifier is not a second
+  // *recognized* Pugilist source. Keep using the verified Fisticuffs feature.
+  actor.items.push({ system: { identifier: original.system.identifier } });
+  assert.equal(feature(actor, 'fisticuffs'), original);
   assert.ok(actorDiagnostics(actor).duplicates.includes('fisticuffs'));
+  // A second verified RPGUp copy *is* ambiguous: fail closed.
+  actor.items.push({ type: 'feat', system: { identifier: original.system.identifier },
+    flags: { [MODULE_ID]: { key: 'fisticuffs' } } });
+  assert.equal(feature(actor, 'fisticuffs'), null);
 });
 
 test('equipment requirements distinguish light armor, shields and ineligible equipped weapons', () => {
