@@ -132,6 +132,13 @@ export function createDocuments() {
   ] }));
   docs.push(chin);
   const strike = base("unarmed", "Golpe Desarmado — Pugilist", "weapon", "Ataque desarmado de Força. Use a atividade Ação Bônus apenas quando satisfizer Fisticuffs. Agarrar e Empurrar substituem um ataque e usam CD de Força; Heavy Hitter permite um deles após acertar. O DAS mantém as relações de agarrão.");
+  strike.system.description.value = `<div class="ddb">
+    <h2>Unarmed Strike — Golpe Desarmado</h2>
+    <p>Você pode atacar desarmado como parte da ação Atacar. Com Fisticuffs válido, também pode usar uma <strong>ação bônus</strong> para atacar desarmado.</p>
+    <p>Com as condições de Fisticuffs satisfeitas, o dano usa seu dado de Fisticuffs (1d8 nos níveis 1–4 e 1d10 nos níveis 5–6) mais Força. O DAS resolve vantagem, acerto, crítico e ações do turno.</p>
+    <p><strong>Agarrar ou Empurrar:</strong> use a atividade do item <em>Ataque Desarmado</em> gerado pelo DAS. O alvo escolhe salvaguarda de Força ou Destreza e, em caso de falha, sofre o efeito apropriado.</p>
+    <p><em>Se o personagem já possui Unarmed Strike (Pugilist) do 5etools, o RPGUp preserva suas oito atividades originais, mas bloqueia as seis salvaguardas importadas inconsistentes; não cria outro ataque nem duplica a reserva.</em></p>
+  </div>`;
   const strikeActivity = (id, name, activation) => activity(id, name, "attack", activation, {
     attack: { ability: "str", bonus: "", critical: { threshold: null }, flat: false, type: { value: "melee", classification: "unarmed" } },
     damage: { includeBase: true, critical: { bonus: "" }, parts: [] },

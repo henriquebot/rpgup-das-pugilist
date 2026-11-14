@@ -1,4 +1,5 @@
 import { MODULE_ID, IDENTIFIERS as I, ACTIVITY_IDS as A } from '../src/ids.mjs';
+import { importedUnarmed, originalStrikeReady } from './unarmed.mjs';
 
 export const MIN_LEVEL = Object.freeze({ fisticuffs: 1, ironChin: 1, unarmed: 1, moxie: 2, braceUp: 2,
   oneTwoPunch: 2, stickAndMove: 2, bloodied: 2, swagger: 2, heavyHitter: 3, groundwork: 3,
@@ -32,8 +33,7 @@ export const importedDigDeep = item => item?.type === 'feat' && item.system?.ide
   && legacy(item, 'classFeature', 'dig%20deep_pugilist_pugilist2024_4_pugilist2024');
 export const importedBloodied = item => item?.type === 'feat' && item.system?.identifier === 'bloodied-but-unbowed'
   && legacy(item, 'classFeature', 'bloodied%20but%20unbowed_pugilist_pugilist2024_2_pugilist2024');
-const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
-  && legacy(item, 'items.html', 'unarmed%20strike%20(pugilist)_pugilist2024');
+
 export const ownedKey = item => {
   const key = item?.flags?.[MODULE_ID]?.key;
   return key && I[key] === item.system?.identifier ? key : null;
@@ -65,6 +65,12 @@ export function feature(actor, key) {
       return null;
     }
     return addon[0] ?? null;
+  }
+  if (key === 'unarmed') {
+    const originals = itemsOf(actor).filter(importedUnarmed);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'unarmed');
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
   }
   if (key === 'digDeep') {
     const originals = itemsOf(actor).filter(importedDigDeep);
@@ -137,6 +143,19 @@ export function fisticuffsEligible(actor) {
 }
 export const fisticuffsDie = actor => pugilistLevel(actor) >= 5 ? 10 : 8;
 export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
+  // The imported weapon is the ONLY source of the Pugilist's normal/bonus
+  // strikes. Its six legacy saves are unsafe (wrong DC, no native Push).
+  // Use DAS's existing unarmed Grapple/Shove instead; do not mutate 5etools.
+  if (importedUnarmed(activity?.item)) {
+    const actor = activity.actor ?? activity.item.actor;
+    if (feature(actor, 'unarmed') !== activity.item || !originalStrikeReady(activity.item)) return false;
+    if (activity.id === 'dnd5eactivity000')
+      return activity.type === 'attack' && activity.activation?.type === 'action';
+    if (activity.id === 'dnd5eactivity001')
+      return activity.type === 'attack' && activity.activation?.type === 'bonus'
+        && fisticuffsEligible(actor);
+    return false;
+  }
   // The original Dig Deep has two imported activities, which must be migrated
   // before use: the recharge must not grant the effect or spend a bonus action.
   if (importedDigDeep(activity?.item) && ['dnd5eactivity000', 'dnd5eactivity001'].includes(activity.id))
@@ -185,6 +204,7 @@ export function activityAllowed(activity, contentApi = null, usageConfig = {}) {
   if (key === 'digDeep' && importedDigDeep(feature(actor, 'digDeep'))) return false;
   if (key === 'stickAndMove' && importedMoxie(feature(actor, 'moxie'))) return false;
   if (key === 'fisticuffs' && feature(actor, key) !== activity.item) return false;
+  if (key === 'unarmed' && feature(actor, key) !== activity.item) return false;
   if (activity.id === A.bonusAttack && !fisticuffsEligible(actor)) return false;
   // Core applies flurryStrikes enhancements to every external flurry. Refuse
   // our use before paying if that would grant more attacks than this feature.

@@ -13,6 +13,7 @@ import { createHeavyHitter } from './heavy-hitter.mjs';
 import { configureGroundwork, originalGroundworkActivityAllowed } from './groundwork.mjs';
 import { configureMuscleMass } from './muscle-mass.mjs';
 import { configureDigDeep, originalDigDeepActivityAllowed } from './dig-deep.mjs';
+import { inspectUnarmed } from './unarmed.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -92,6 +93,10 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    unarmed(actor) {
+      if (!env.game.user?.isGM) throw new Error('Diagnóstico de Unarmed Strike disponível somente ao Mestre.');
+      return inspectUnarmed(actor);
+    },
     digDeep(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode corrigir Dig Deep.');
       if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
