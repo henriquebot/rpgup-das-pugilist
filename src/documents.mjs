@@ -120,6 +120,13 @@ export function createDocuments() {
   }
   docs.push(fists);
   const chin = feat("ironChin", "Iron Chin — Queixo de Ferro", 1, "Sem escudo e com armadura leve ou nenhuma, pode usar CA base 12 + modificador de Constituição. Bônus de CA legítimos continuam aplicáveis; fórmulas incompatíveis não se acumulam.");
+  chin.system.description.value = `<div class="ddb">
+    <h2>Iron Chin — Queixo de Ferro</h2>
+    <p>Seu condicionamento físico permite utilizar <strong>12 + seu modificador de Constituição</strong> como CA base.</p>
+    <p><strong>Condições:</strong> não estar usando armadura média ou pesada nem escudo. Armadura leve ou nenhuma armadura são permitidas.</p>
+    <p>O sistema compara essa fórmula com outras opções válidas de CA. Bônus de CA que se aplicam normalmente continuam sendo considerados.</p>
+    <p><em>Habilidade passiva: não requer atividade de ataque ou ação. Na versão importada pelo 5etools, as alterações antigas de CA precisam de uma migração específica e reversível antes de aplicar o comportamento condicional.</em></p>
+  </div>`;
   chin.effects.push(effect(EFFECT_IDS.ironChin, "Iron Chin", "ironChin", { transfer: true, changes: [
     { _id: stable("chin-change"), key: `flags.${MODULE_ID}.ironChin`, value: "true", type: "custom", phase: "initial", priority: null }
   ] }));

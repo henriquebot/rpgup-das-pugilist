@@ -4,6 +4,7 @@ import { applyIronChin, applyDigDeep, applyFisticuffsDamage, activityAllowed, ac
 import { createRuntime } from './runtime.mjs';
 import { createAutomation } from './automation.mjs';
 import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
+import { migrateIronChin } from './iron-chin.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -72,6 +73,12 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    // Opt-in migration only. No actor data is changed on world load.
+    ironChin(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode corrigir Iron Chin.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return migrateIronChin(actor, { ...options, isGM: true });
+    },
     diagnostics(actor) {
       if (!env.game.user?.isGM) throw new Error('Diagnóstico disponível somente ao Mestre.');
       return { enabled: enabled(), versions: { foundry: env.game.version, dnd5e: env.game.system.version, core: env.game.modules.get('dnd5e-combat')?.version },

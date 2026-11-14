@@ -13,6 +13,8 @@ export const importedPugilistClass = item => item?.type === 'class' && item.syst
   && legacy(item, 'classes.html', 'pugilist_pugilist2024');
 export const importedFisticuffs = item => item?.type === 'feat' && item.system?.identifier === 'fisticuffs'
   && legacy(item, 'classFeature', 'fisticuffs_pugilist_pugilist2024_1_pugilist2024');
+export const importedIronChin = item => item?.type === 'feat' && item.system?.identifier === 'iron-chin'
+  && legacy(item, 'classFeature', 'iron%20chin_pugilist_pugilist2024_1_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
   && legacy(item, 'items.html', 'unarmed%20strike%20(pugilist)_pugilist2024');
 export const ownedKey = item => {
@@ -29,6 +31,12 @@ export function feature(actor, key) {
   const level = pugilistLevel(actor);
   if (!level || level < (MIN_LEVEL[key] ?? 1)) return null;
   if (SUBCLASS.has(key) && !itemsOf(actor).some(i => i.type === 'subclass' && ownedKey(i) === 'squaredCircle')) return null;
+  if (key === 'ironChin') {
+    const originals = itemsOf(actor).filter(importedIronChin);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'ironChin');
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
+  }
   if (key === 'fisticuffs') {
     const originals = itemsOf(actor).filter(importedFisticuffs);
     const addon = itemsOf(actor).filter(i => ownedKey(i) === 'fisticuffs');
@@ -137,11 +145,16 @@ export function actorDiagnostics(actor) {
   const duplicates = Object.keys(I).filter(key => list.filter(i => i.system?.identifier === I[key]).length > 1);
   const originals = list.filter(importedFisticuffs);
   const addon = list.filter(i => ownedKey(i) === 'fisticuffs');
+  const legacyChin = list.filter(importedIronChin);
+  const addonChin = list.filter(i => ownedKey(i) === 'ironChin');
   return { level: pugilistLevel(actor), duplicates, fisticuffs: {
     source: originals.length === 1 ? '5etools/Plutonium' : addon.length === 1 ? 'RPGUp' : 'ausente',
     originalCount: originals.length, addonCount: addon.length,
     active: Boolean(feature(actor, 'fisticuffs')),
     duplicateImport: originals.length > 1 || addon.length > 1
+  }, ironChin: {
+    source: legacyChin.length === 1 ? '5etools/Plutonium' : addonChin.length === 1 ? 'RPGUp' : 'ausente',
+    originalCount: legacyChin.length, addonCount: addonChin.length, active: Boolean(feature(actor, 'ironChin'))
   }, schemaVersions: [...new Set(list.filter(ownedKey).map(i => i.flags[MODULE_ID].schemaVersion))],
     automation: { swagger: 'hook', compression: 'hook', stopAndDrop: 'hook', meatShield: 'hook', haymaker: 'hook+DAS' } };
 }
