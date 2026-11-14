@@ -1,6 +1,6 @@
 {
   "name": "rpgup-das-pugilist",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Isolated Pugilist content add-on for DAS and dnd5e",
@@ -12,7 +12,9 @@
     "test:upstream": "node tools/test-upstream.mjs",
     "references": "node tools/fetch-references.mjs"
   },
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "3.0.4",
     "classic-level": "3.0.0",
