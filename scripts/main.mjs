@@ -11,6 +11,7 @@ import { configureBloodied, originalBloodiedAllowed, markBloodiedDamage } from '
 import { originalSwaggerAllowed } from './swagger.mjs';
 import { createHeavyHitter } from './heavy-hitter.mjs';
 import { configureGroundwork, originalGroundworkActivityAllowed } from './groundwork.mjs';
+import { configureMuscleMass } from './muscle-mass.mjs';
 
 export function compatible(game) {
   return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
@@ -89,6 +90,11 @@ export function install(env) {
     if (enabled()) runtime.expireAll().catch(report);
   });
   const api = Object.freeze({
+    muscleMass(actor, options = {}) {
+      if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar Muscle Mass.');
+      if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');
+      return configureMuscleMass(actor, { ...options, isGM: true });
+    },
     groundwork(actor, options = {}) {
       if (!env.game.user?.isGM) throw new Error('Somente o Mestre pode configurar Groundwork.');
       if (!enabled()) throw new Error('RPGUp DAS Pugilist não está ativo ou é incompatível.');

@@ -26,6 +26,8 @@ export const importedSquaredCircle = item => item?.type === 'subclass' && item.s
   && legacy(item, 'classes.html', 'pugilist_pugilist2024,state:sub_squared%20circle_pugilist2024=b1');
 export const importedGroundwork = item => item?.type === 'feat' && item.system?.identifier === 'groundwork'
   && legacy(item, 'subclassFeature', 'groundwork_pugilist_pugilist2024_squared%20circle_pugilist2024_3_pugilist2024');
+export const importedMuscleMass = item => item?.type === 'feat' && item.system?.identifier === 'muscle-mass'
+  && legacy(item, 'subclassFeature', 'muscle%20mass_pugilist_pugilist2024_squared%20circle_pugilist2024_3_pugilist2024');
 export const importedBloodied = item => item?.type === 'feat' && item.system?.identifier === 'bloodied-but-unbowed'
   && legacy(item, 'classFeature', 'bloodied%20but%20unbowed_pugilist_pugilist2024_2_pugilist2024');
 const importedUnarmed = item => item?.type === 'weapon' && item.system?.identifier === 'unarmed-strike-pugilist'
@@ -61,6 +63,12 @@ export function feature(actor, key) {
       return null;
     }
     return addon[0] ?? null;
+  }
+  if (key === 'muscleMass') {
+    const originals = itemsOf(actor).filter(importedMuscleMass);
+    const addon = itemsOf(actor).filter(i => ownedKey(i) === 'muscleMass');
+    if (originals.length > 1 || addon.length > 1) return null;
+    return originals[0] ?? addon[0] ?? null;
   }
   if (key === 'heavyHitter') {
     const originals = itemsOf(actor).filter(importedHeavyHitter);

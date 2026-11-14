@@ -237,7 +237,15 @@ export function createDocuments() {
     [ACTIVITY_IDS.inescapable]: activity(ACTIVITY_IDS.inescapable, "Inescapable", "utility", "special", { consumption: consumption([cost()]) })
   } }));
   docs.push(feat("stopAndDrop", "Stop and Drop — Parar e Derrubar", 3, "Ao acertar um golpe desarmado sem usar uma propriedade de maestria nesse ataque, pode usar Agarrar e Empurrar contra o mesmo alvo. O módulo lê a maestria registrada no cartão de ataque antes de oferecer os dois efeitos."));
-  docs.push(feat("muscleMass", "Muscle Mass — Massa Muscular", 3, "Escolha Acrobacia ou Atletismo no avanço nativo da subclasse. Recebe proficiência na perícia escolhida se não a possuía, ou Expertise se já era proficiente. A escolha fica registrada no avanço Trait em modo upgrade; não é reaplicada na recarga."));
+  const muscle = feat("muscleMass", "Muscle Mass — Massa Muscular", 3,
+    "Escolha Acrobacia ou Atletismo. Se ainda não for proficiente, ganhe proficiência; se já for, ganhe especialização. Uma única escolha registrada e reversível pelo Mestre.");
+  muscle.system.description.value = `<div class="ddb">
+    <h2>Muscle Mass — Massa Muscular</h2>
+    <p>Quando você ganha esta característica, escolha <strong>Acrobacia</strong> ou <strong>Atletismo</strong>.</p>
+    <p>Se não possuir proficiência com a perícia escolhida, ganha <strong>proficiência</strong>. Se já possuir proficiência, ganha <strong>especialização (expertise)</strong>.</p>
+    <p><em>Em personagens já importados e avançados além do nível 3, o Mestre pode registrar a escolha uma vez pelo RPGUp. A característica original e seus textos permanecem intactos.</em></p>
+  </div>`;
+  docs.push(muscle);
   const dig = feat("digDeep", "Dig Deep — Reservas Profundas", 4, "Como ação bônus, por 10 minutos recebe resistência a concussão, perfurante e cortante e ignora os efeitos de Exhaustion inferior a 6, mantendo os níveis registrados. Uma utilização por descanso longo. Se o uso estiver gasto, pode escolher receber voluntariamente um nível de Exhaustion para recuperá-lo.", { uses: uses("1", "lr"), activities: {
     [ACTIVITY_IDS.digDeep]: activity(ACTIVITY_IDS.digDeep, "Dig Deep", "utility", "bonus", { consumption: consumption([cost("")]), effects: [{ _id: EFFECT_IDS.digDeep }], duration: { units: "minute", value: "10", concentration: false, override: false } }),
     [ACTIVITY_IDS.digRecharge]: activity(ACTIVITY_IDS.digRecharge, "Receber 1 Exhaustion e recuperar Dig Deep", "utility", "special", { consumption: consumption([{ type: "attribute", target: "attributes.exhaustion", value: "-1", scaling: {} }, cost("", "-1")]) })
