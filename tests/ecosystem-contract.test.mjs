@@ -11,10 +11,10 @@ const available = existsSync(resolve(animationPath, "module/scripts/core/registr
 const load = path => import(pathToFileURL(resolve(animationPath, path)).href);
 
 test("DAS Animations reference is available in CI", () => {
-  if (process.env.CI) assert.ok(available, "Clone DAS Animations v0.15.0, or set DAS_ANIMATIONS");
+  if (process.env.CI) assert.ok(available, "Clone DAS Animations v0.16.3, or set DAS_ANIMATIONS");
 });
 
-test("DAS 0.15.0 recognizes native unarmed classification independently of translated names", { skip: !available }, async () => {
+test("DAS 0.16.3 recognizes native unarmed classification independently of translated names", { skip: !available }, async () => {
   const { weaponRecipe, strikeForm } = await load("module/scripts/core/strikes.mjs");
   for (const keys of [[], ["punhos"], ["coupdepoing"], ["unarmedstrike"]]) {
     const summary = { itemType: "feat", classification: "unarmed", attackType: "melee", keys, damageTypes: ["bludgeoning"] };

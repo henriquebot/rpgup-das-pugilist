@@ -16,10 +16,11 @@ import { configureDigDeep, originalDigDeepActivityAllowed } from './dig-deep.mjs
 import { inspectUnarmed } from './unarmed.mjs';
 import { inspectLevel4ASI } from './asi-level4.mjs';
 
+// Snapshot gate: only the upstream versions audited for this build may register hooks.
 export function compatible(game) {
-  return game?.system?.id === 'dnd5e' && game.system.version === '6.0.6'
+  return game?.system?.id === 'dnd5e' && game.system.version === '6.1.1'
     && game.version === '14.370' && game.modules?.get('dnd5e-combat')?.active === true
-    && game.modules.get('dnd5e-combat').version === '0.282.1';
+    && game.modules.get('dnd5e-combat').version === '0.290.0';
 }
 
 export function install(env) {

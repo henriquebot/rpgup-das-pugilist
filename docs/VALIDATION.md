@@ -1,5 +1,10 @@
 # Validação e limites
 
+## Portabilidade da v0.2.3 (21/11/2026)
+
+Alvo atualizado: Foundry 14.370, dnd5e 6.1.1, DAS Core 0.290.0 e referência opcional DAS Animations 0.16.3. O CI foi reconfigurado para clonar precisamente essas tags e executar os contratos reais mais o empacotamento. **O sucesso histórico da v0.2.2 não comprova a nova v0.2.3**; a execução do CI novo e o roteiro no Foundry continuam indispensáveis. As pesquisas `research-*.md` descrevem o estado histórico das tags antigas; a auditoria de portabilidade está em `docs/COMPATIBILITY-2026-11-21.md`.
+
+
 O teste dentro do Foundry ficou a cargo do usuário por instrução expressa. Nenhum aplicativo pessoal, módulo instalado ou mundo de campanha foi operado durante esta entrega. As referências completas estão em `tools/references.json`; `.research` é ignorado pelo Git e não entra no ZIP.
 
 ## O que a automação externa verifica
@@ -12,7 +17,7 @@ O teste dentro do Foundry ficou a cargo do usuário por instrução expressa. Ne
 
 Esses testes não executam canvas, DataModels completos, DiceRoll real, banco de mundo, sockets, fichas ou dois navegadores Foundry.
 
-## Resultado desta entrega
+## Resultado histórico da v0.2.2 (antes desta atualização)
 
 - `npm run check`: **93 testes aprovados**, nenhum ignorado; compêndio com **22 Items**; ZIP, manifesto e LevelDB validados; round trip oficial preservou atividades, avanços e efeitos.
 - `npm run test:upstream`: **174 arquivos e 1.814 testes do DAS aprovados**, nenhum ignorado, na tag fixada e sem alterações em fontes upstream.

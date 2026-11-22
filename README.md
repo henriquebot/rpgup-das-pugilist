@@ -1,17 +1,19 @@
 # RPGUp DAS Pugilist
 
-Add-on para **Foundry VTT 14.370, dnd5e 6.0.6 e DAS Core 0.282.1**. Contém a classe Pugilist do nível 1 ao 6 e somente a subclasse Squared Circle. Versão **0.2.2, pré-lançamento para validação**.
+Add-on para **Foundry VTT 14.370, dnd5e 6.1.1 e DAS Core 0.290.0**. Contém a classe Pugilist do nível 1 ao 6 e somente a subclasse Squared Circle. Versão **0.2.3, pré-lançamento para validação**.
 
 As cinco mecânicas prioritárias agora possuem complementos assistidos, mas ainda exigem validação dentro do Foundry. Swagger requer uma CD numérica conhecida; Haymaker automático cobre o fluxo normal de `activity.use`; Meat Shield depende da continuidade entre pagamento e repetição do ataque. Leia a matriz antes de usar em campanha.
 
 ## Instalar e utilizar
 
-No instalador de módulos do Foundry, use o [manifesto v0.2.2](https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.2/module.json). O [ZIP e as notas da versão](https://github.com/henriquebot/rpgup-das-pugilist/releases/tag/v0.2.2) são gerados pelo workflow de release.
+No instalador de módulos do Foundry, use o [manifesto v0.2.3](https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.3/module.json). O [ZIP e as notas da versão](https://github.com/henriquebot/rpgup-das-pugilist/releases/tag/v0.2.3) são gerados pelo workflow de release.
 
 1. Ative DAS Core e RPGUp DAS Pugilist no mundo de teste.
 2. Abra o compêndio **RPGUp · Pugilist (1–6)** e arraste **Pugilist** para um personagem novo. Use os avanços nativos ao subir de nível.
 3. No nível 3, selecione **Squared Circle** no avanço de subclasse e escolha Acrobacia ou Atletismo para Muscle Mass.
 4. Use **Golpe Desarmado — Pugilist** e as atividades das características na ficha. O DAS conduz combate, alvos, reações, custos e escolhas. Haymaker é oferecido automaticamente antes de ataques elegíveis iniciados pelo fluxo normal; sua atividade manual continua como alternativa para integrações que chamem diretamente `rollAttack`.
+
+**Compatibilidade 0.2.3:** as dependências são fixadas exatamente nas versões acima. Consulte [a auditoria de 21/11/2026](docs/COMPATIBILITY-2026-11-21.md) antes de testar. O módulo não é um adaptador genérico para DDB Importer: a integração de características importadas só reconhece as origens explicitamente suportadas, não todo item com o mesmo nome.
 
 Para personagens importados (como Kyros), atualizar o add-on **não modifica os itens existentes**. Depois de conferir o diagnóstico, o GM pode habilitar em lote as migrações reversíveis oferecidas pela API; talentos e atributos já aplicados não são reconcedidos.
 

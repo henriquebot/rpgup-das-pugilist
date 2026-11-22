@@ -2,7 +2,7 @@
   "id": "rpgup-das-pugilist",
   "title": "RPGUp DAS Pugilist",
   "description": "Pugilist níveis 1–6 e Squared Circle para DAS, com automações assistidas. Consulte a matriz de validação.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "authors": [
     {
       "name": "RPGUp"
@@ -19,9 +19,9 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "6.0.6",
-          "verified": "6.0.6",
-          "maximum": "6.0.6"
+          "minimum": "6.1.1",
+          "verified": "6.1.1",
+          "maximum": "6.1.1"
         }
       }
     ],
@@ -29,11 +29,11 @@
       {
         "id": "dnd5e-combat",
         "type": "module",
-        "manifest": "https://github.com/Darshyne/dnd5e-combat/releases/download/v0.282.1/module.json",
+        "manifest": "https://github.com/Darshyne/dnd5e-combat/releases/download/v0.290.0/module.json",
         "compatibility": {
-          "minimum": "0.282.1",
-          "verified": "0.282.1",
-          "maximum": "0.282.1"
+          "minimum": "0.290.0",
+          "verified": "0.290.0",
+          "maximum": "0.290.0"
         }
       }
     ]
@@ -63,6 +63,6 @@
   ],
   "url": "https://github.com/henriquebot/rpgup-das-pugilist",
   "manifest": "https://raw.githubusercontent.com/henriquebot/rpgup-das-pugilist/main/module.json",
-  "download": "https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.2/rpgup-das-pugilist.zip",
+  "download": "https://github.com/henriquebot/rpgup-das-pugilist/releases/download/v0.2.3/rpgup-das-pugilist.zip",
   "license": "LICENSE"
 }
