@@ -38,7 +38,7 @@ export function createRulzusForceRefund(env) {
 
   function resourceUpdate(item, changes) {
     if (item?.id !== MOXIE_ITEM_ID || item?.parent?.id !== ACTOR_ID) return;
-    const next = Number(changes?.system?.uses?.spent);
+    const next = Number(changes?.system?.uses?.spent ?? changes?.['system.uses.spent']);
     if (!Number.isFinite(next)) return;
     const previous = Number.isFinite(observed) ? observed : NaN;
     observed = next;
