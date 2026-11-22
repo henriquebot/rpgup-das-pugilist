@@ -12,9 +12,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: git clone --depth 1 --branch v0.282.1 https://github.com/Darshyne/dnd5e-combat.git .research/dnd5e-combat
-      - run: git clone --depth 1 --branch v0.15.0 https://github.com/Darshyne/darsh-animations.git .research/darsh-animations
-      - run: git clone --depth 1 --branch release-6.0.6 https://github.com/foundryvtt/dnd5e.git .research/dnd5e
+      - run: git clone --depth 1 --branch v0.290.0 https://github.com/Darshyne/dnd5e-combat.git .research/dnd5e-combat
+      - run: git clone --depth 1 --branch v0.16.3 https://github.com/Darshyne/darsh-animations.git .research/darsh-animations
+      - run: git clone --depth 1 --branch release-6.1.1 https://github.com/foundryvtt/dnd5e.git .research/dnd5e
       - run: npm run check
       - run: npm ci --ignore-scripts
         working-directory: .research/dnd5e-combat

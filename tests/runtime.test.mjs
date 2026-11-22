@@ -86,9 +86,9 @@ function environment(actor, { player = false } = {}) {
   };
   const env = {
     Hooks: new HooksHarness(),
-    game: { version: '14.370', system: { id: 'dnd5e', version: '6.0.6' }, user, users, actors: actor ? [actor] : [], time: { worldTime: 1000 },
+    game: { version: '14.370', system: { id: 'dnd5e', version: '6.1.1' }, user, users, actors: actor ? [actor] : [], time: { worldTime: 1000 },
       i18n: { localize: key => key }, modules: new Map([
-        ['dnd5e-combat', { active: true, version: '0.282.1', api: { content } }], [MODULE_ID, { active: true }]
+        ['dnd5e-combat', { active: true, version: '0.290.0', api: { content } }], [MODULE_ID, { active: true }]
       ]) },
     foundry: { utils: { getProperty: get } },
     console: { error: error => errors.push(error) }, ui: { notifications: { warn: message => warnings.push(message) } },
@@ -100,7 +100,7 @@ function environment(actor, { player = false } = {}) {
 test('exact version checks gate setup registration and all owned roll hooks', () => {
   const pc = actor();
   const env = environment(pc);
-  env.game.system.version = '6.0.7';
+  env.game.system.version = '6.0.6';
   assert.equal(compatible(env.game), false);
   const api = install(env);
   env.Hooks.call('dnd5e-combat.registerContent', env.game.modules.get('dnd5e-combat').api.content.register);
@@ -109,6 +109,22 @@ test('exact version checks gate setup registration and all owned roll hooks', ()
   assert.equal(env.registrations.length, 0);
   assert.equal(config.rolls[0].parts[0], '1 + @mod');
   assert.equal(api.diagnostics().enabled, false);
+});
+
+test('compatibility requires the audited Foundry, dnd5e and DAS versions', () => {
+  const env = environment(actor());
+  assert.equal(compatible(env.game), true);
+  env.game.modules.get('dnd5e-combat').version = '0.289.0';
+  assert.equal(compatible(env.game), false);
+  env.game.modules.get('dnd5e-combat').version = '0.290.0';
+  env.game.version = '14.369';
+  assert.equal(compatible(env.game), false);
+  env.game.version = '14.370';
+  env.game.system.version = '6.1.0';
+  assert.equal(compatible(env.game), false);
+  env.game.system.version = '6.1.1';
+  env.game.modules.get('dnd5e-combat').active = false;
+  assert.equal(compatible(env.game), false);
 });
 
 test('setup registers once, ready does not duplicate it, and shutdown removes all listeners', () => {

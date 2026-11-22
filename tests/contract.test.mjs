@@ -15,9 +15,9 @@ const { freshBudget, checkUse, spendUse } = await fromCore("core/turn.mjs");
 const { maximizeDice } = await fromCore("core/max-dice.mjs");
 const registry = await fromCore("content/index.mjs");
 
-test("all module entries pass the actual DAS 0.282.1 validator", async () => {
+test("all module entries pass the actual DAS 0.290.0 validator", async () => {
   const manifest = JSON.parse(await readFile(resolve(root, "module/module.json"), "utf8"));
-  assert.equal(manifest.version, "0.282.1");
+  assert.equal(manifest.version, "0.290.0");
   assert.deepEqual(validateTable(CONTENT), []);
   for (const [identifier, entry] of Object.entries(CONTENT)) {
     assert.deepEqual(validateEntry(entry), [], identifier);
