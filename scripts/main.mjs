@@ -3,6 +3,7 @@ import { CONTENT, SOURCES } from './content.mjs';
 import { applyIronChin, applyDigDeep, applyFisticuffsDamage, activityAllowed, actorDiagnostics } from './policy.mjs';
 import { createRuntime } from './runtime.mjs';
 import { createAutomation } from './automation.mjs';
+import { createRulzusForceRefund } from './rulzus-haymaker-force.mjs';
 import { applyImprovisedSap, applyImprovisedTraining } from './improvised.mjs';
 import { migrateIronChin } from './iron-chin.mjs';
 import { configureOneTwoPunch } from './one-two-punch.mjs';
@@ -27,6 +28,7 @@ export function install(env) {
   const hooks = [];
   const runtime = createRuntime(env);
   const automation = createAutomation(env);
+  const rulzusForceRefund = createRulzusForceRefund(env);
   const heavyHitter = createHeavyHitter(env, { choose: automation.choose });
   const stickMove = createStickAndMoveIntegration(env);
   let stopped = false;
@@ -72,6 +74,12 @@ export function install(env) {
     }
   }));
   on('dnd5e.postUseActivity', asyncGuarded(runtime.bloodied));
+  // Force-only fallback for Rulzus's pre-existing maximum-damage activities.
+  // Does not change the ordinary bludgeoning refund path.
+  on('dnd5e.preUseActivity', guarded(rulzusForceRefund.beforeUse));
+  on('updateItem', guarded(rulzusForceRefund.resourceUpdate));
+  on('createChatMessage', guarded(rulzusForceRefund.usageCard));
+  on('dnd5e-combat.resolution', asyncGuarded(rulzusForceRefund.resolution));
   on('dnd5e.preApplyDamage', guarded((actor, amount, updates) => markBloodiedDamage(actor, amount, updates)));
   on('dnd5e.preApplyDamage', guarded(runtime.trackTemporaryHp));
   on('preUpdateActor', guarded(runtime.manualTemporaryHp));
@@ -89,6 +97,7 @@ export function install(env) {
     if (!enabled()) { if (env.game.user?.isGM) env.ui?.notifications?.warn(env.game.i18n.localize('RPGUPPUGILIST.Unsupported')); return; }
     if (!registration) register((...args) => env.game.modules.get('dnd5e-combat').api.content.register(...args));
     automation.registerQuery();
+    rulzusForceRefund.initialize();
     // Register after the DAS legality routes. An illegal/out-of-range attack is
     // rejected by Core before Haymaker can spend Moxie.
     if (!lateHooks) { lateHooks = true; on('dnd5e.preUseActivity', guarded(automation.haymaker)); }
