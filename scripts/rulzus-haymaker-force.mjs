@@ -44,7 +44,9 @@ export function createRulzusForceRefund(env) {
     observed = next;
     if (!Number.isFinite(previous) || next <= previous) return;
     lastSpend = { turn: currentTurn(), previous, amount: next, at: Date.now() };
-    if (pending?.turn === currentTurn() && next > pending.before) pending.paidAt = next;
+    if (pending?.turn === currentTurn() &&
+      (next > pending.before || (pending.paidAt === null && next === pending.before && previous === next - 1)))
+      pending.paidAt = next;
   }
 
   function usageCard(message) {
